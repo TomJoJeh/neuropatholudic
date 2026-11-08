@@ -64,6 +64,8 @@ a{color:var(--hema)}
 .level .pips i.on{background:var(--c)}
 .seg{display:flex;gap:8px;flex-wrap:wrap}
 .seg button{border:2px solid var(--line);background:var(--bg2);border-radius:999px;padding:8px 16px;min-height:44px;cursor:pointer;font-weight:600}
+.seg .new{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;background:var(--eosin);color:#fff;border-radius:999px;padding:1px 6px;margin-left:4px;vertical-align:2px}
+.ctx{font-size:15px;line-height:1.5;background:var(--bg2);border:1px dashed var(--line);border-radius:12px;padding:10px 12px;margin:0 0 12px}
 .seg button[aria-pressed="true"]{border-color:var(--hema);background:var(--hema-soft);color:var(--hema)}
 .cta{display:block;width:100%;margin-top:26px;border:0;border-radius:var(--r);padding:16px;font-size:18px;font-weight:800;color:#fff;background:linear-gradient(90deg,var(--hema),var(--eosin));cursor:pointer;box-shadow:var(--shadow);min-height:56px}
 .cta:active{transform:scale(.99)}
@@ -107,7 +109,8 @@ a{color:var(--hema)}
 
 .reveal{margin-top:16px;border-radius:var(--r);background:var(--bg2);border:1px solid var(--line);box-shadow:var(--shadow);padding:16px 16px 18px;animation:pop .25s ease-out}
 @keyframes pop{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-.verdict{font-size:20px;font-weight:800;margin:0 0 8px;display:flex;align-items:center;gap:8px}
+.verdict{font-size:20px;font-weight:800;margin:0 0 10px}
+.verdict .ans{display:block;font-weight:600;font-size:15px;color:var(--muted);margin-top:2px;line-height:1.35}
 .verdict.ok{color:var(--ok)} .verdict.bad{color:var(--bad)}
 .link{margin:0 0 10px;padding:10px 12px;border-left:4px solid var(--hema);background:var(--hema-soft);border-radius:8px;font-size:15px}
 .link small{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--hema);font-weight:800;margin-bottom:2px}
@@ -163,6 +166,13 @@ a{color:var(--hema)}
       <p>Four choices: diagnoses, stains, genes, lesions, slides. Three of them belong together. Work out what links them, then pick the one that doesn't fit.</p>
     </div>
 
+    <div class="section-label">Question pack</div>
+    <div class="seg" id="packs">
+      <button data-p="1" aria-pressed="false">Pack 1</button>
+      <button data-p="2" aria-pressed="false">Pack 2 <span class="new">new</span></button>
+      <button data-p="0" aria-pressed="true">Both</button>
+    </div>
+
     <div class="section-label">Difficulty</div>
     <div class="levels" id="levels"></div>
 
@@ -190,6 +200,7 @@ a{color:var(--hema)}
     <div class="topic" id="topic"></div>
     <h2 class="stem" id="stem">Find the odd one out</h2>
     <p class="sub" id="sub"></p>
+    <div class="ctx hidden" id="ctx"></div>
     <div class="opts" id="opts"></div>
     <div id="revealBox"></div>
     <div class="kbd">Keys 1–4 to answer · Enter for next</div>
@@ -226,7 +237,7 @@ a{color:var(--hema)}
 </div>
 
 <script>
-const Q = [];
+const Q = [], Q2 = [];
 // Wikimedia Commons image credits (file name -> [license, author])
 const CREDITS = {
 "Duchenne-muscular-dystrophy.jpg":["Public domain","Dr. Edwin P. Ewing, Jr. (CDC)"],
@@ -286,6 +297,71 @@ const CREDITS = {
 "Mitochondrial myopathy crystalline inclusions.jpg":["CC BY-SA 4.0","Jensflorian"],
 "Pompe vacuoles.jpg":["CC BY-SA 3.0","Jensflorian"]
 };
+
+// Pack 2 image credits
+Object.assign(CREDITS, {
+"Biondi bodies in human choroid plexus.jpg":["CC0","Tulemo"],
+"Corpora amylacea in the brain, HE 1.JPG":["CC BY-SA 3.0","Patho"],
+"Hypoxic neuronal injury, HE 1.jpg":["CC BY-SA 3.0","Patho"],
+"Onion bulbs semi thin nerve biopsy.jpg":["CC BY-SA 4.0","Jensflorian"],
+"Tanycytic ependymoma HE.jpg":["CC BY-SA 3.0","Jensflorian"],
+"Myxopapillary ependymoma - intermed mag.jpg":["CC BY-SA 3.0","Nephron"],
+"Subependymoma - intermed mag.jpg":["CC BY-SA 3.0","Nephron"],
+"Huntington disease ubiquitin.jpg":["CC BY-SA 3.0","Jensflorian"],
+"Astroblastoma HE papillae.jpg":["CC BY-SA 3.0","Jensflorian"],
+"Papillary meningioma HE.jpg":["CC BY-SA 3.0","Jensflorian"],
+"Yolk sac tumor schiller duval body.jpg":["CC BY-SA 3.0","Jensflorian"],
+"Germinoma 15-869 386.jpg":["CC BY-SA 4.0","藤澤孝志"],
+"Cerebral Giant-Cell Vasculitis.jpg":["CC BY-SA 3.0","Marvin 101"],
+"Emperipolesis rosai dorfman erkrankung.jpg":["CC BY-SA 3.0","Jensflorian"],
+"Pilomyxoid astrocytoma 01.jpg":["CC BY-SA 4.0","Jensflorian"],
+"Pineocytoma - high mag.jpg":["CC BY-SA 3.0","Nephron"],
+"Rhabdoid Meningioma Histopathology.jpg":["CC BY 3.0","Marvin 101"]
+,"Histopathology of postmortem bacterial growth in a cerebral blood vessel.jpg":["CC0","Mikael Häggström, M.D."]
+,"Adamantinomatous craniopharyngioma - intermed mag.jpg":["CC BY-SA 3.0","Nephron"]
+,"Papillary craniopharyngioma - intermed mag.jpg":["CC BY-SA 3.0","Nephron"]
+,"Dermoid cyst intracranial.jpg":["CC BY-SA 3.0","Jensflorian"]
+,"Glioependymal cyst HE.jpg":["CC BY-SA 3.0","Jensflorian"]
+,"Vasculitic neuropathy - plastics - high mag.jpg":["CC BY-SA 3.0","Nephron"]
+,"Cryoglobulinaemic neuropathy vascultis nerve biopsy.jpg":["CC BY-SA 4.0","Marvin 101"]
+,"Granulomatous nerve inflammation.jpg":["CC BY-SA 4.0","Jensflorian"]
+,"PilocyticAstrocytoma 20x HE.jpg":["CC BY-SA 3.0","Marvin 101"]
+,"Neurofibrillary tangles in the Hippocampus of an old person with Alzheimer-related pathology, immunohistochemistry for tau protein.JPG":["CC BY-SA 3.0","Patho"]
+,"AGD tau.jpg":["CC BY-SA 3.0","Jensflorian"]
+,"FTDP-17 Tau immuno.jpg":["CC BY-SA 3.0","Jensflorian"]
+,"Choroid plexus papilloma micrograph.jpg":["CC BY-SA 3.0","Nephron"]
+,"Papillary ependymoma HE.jpg":["CC BY-SA 3.0","Jensflorian"]
+,"Subpial growth.jpg":["CC BY-SA 3.0","Jensflorian"]
+,"Oligodendroglioma discrete invasion HE.jpg":["CC BY-SA 3.0","Jensflorian"]
+,"Glioblastoma brain infiltration zone.jpg":["CC BY-SA 3.0","Jensflorian"]
+,"Meningioma - brain invasion - intermed mag.jpg":["CC BY-SA 3.0","Nephron"]
+,"Yolk sac tumor sinusoid epithelia.jpg":["CC BY-SA 3.0","Jensflorian"]
+,"Choroid plexus in teratoma -- intermed mag.jpg":["CC BY-SA 4.0","Nephron"]
+,"Neuropathology case VIII 03.jpg":["CC BY-SA 4.0","Jensflorian"]
+,"Sarkoidosis muscle.jpg":["CC BY-SA 3.0","Jensflorian"]
+,"HE aspergillus multinucleated giant cells.jpg":["CC BY-SA 3.0","Jensflorian"]
+,"GBM-endothelial proliferations.jpg":["CC BY-SA 3.0","Jensflorian"]
+,"Glioblastoma endothelial proliferations.jpg":["CC BY-SA 3.0","Jensflorian"]
+,"Anaplastic ganglioglioma endothelial prolifartions HE.jpg":["CC BY-SA 3.0","Jensflorian"]
+,"PA endothelproliferation.jpg":["CC BY-SA 3.0","Jensflorian"]
+,"Myxopapillary Ependymoma Alcian-blue.jpg":["CC BY-SA 4.0","Jensflorian"]
+,"Alcian blue chordoid meningioma.jpg":["CC BY-SA 3.0","Jensflorian"]
+,"Chordoma - high mag.jpg":["CC BY-SA 3.0","Nephron"]
+,"PPID intermed mag HE.jpg":["CC BY-SA 4.0","Jensflorian"]
+,"Pinealis parechymal tumor.jpg":["CC BY-SA 3.0","Jensflorian"]
+,"PTPR HE low magnification.jpg":["CC BY-SA 4.0","Jensflorian"]
+,"Adenocarcinoma infiltrating the brain.jpg":["CC BY-SA 3.0","Jensflorian"]
+,"Karzinommetastase HE10x.jpg":["CC BY-SA 2.0 de","Marvin 101"]
+,"Brain metastasis - high mag.jpg":["CC BY-SA 3.0","Nephron"]
+,"GBM nested epithelial.jpg":["CC BY-SA 4.0","Jensflorian"]
+,"Melanocytoma Histopathology HE20x.jpg":["CC BY-SA 3.0","Marvin 101"]
+,"Melanoma infiltrating the brain.jpg":["CC BY-SA 3.0","Jensflorian"]
+,"Malignant melanoma HMB45.jpg":["CC BY-SA 3.0","Jensflorian"]
+,"Psammomatous melanotic schwannoma - high mag.jpg":["CC BY-SA 3.0","Nephron"]
+,"Metaplastic osseous meningioma.jpg":["CC BY-SA 4.0","Jensflorian"]
+,"Metaplastic xanthomatous meningioma.jpg":["CC BY-SA 4.0","Jensflorian"]
+,"Secretory meningioma PAS.jpg":["CC BY-SA 4.0","Jensflorian"]
+});
 
 // NORMAL — 34 questions
 Q.push(
@@ -699,6 +775,419 @@ Q.push(
  why:"1) SEGA, with large gemistocyte-like/ganglioid cells. 2) Cortical tuber with dysmorphic neurons. 3) Multifocal micronodular pneumocyte hyperplasia, a TSC lung lesion distinct from LAM. 4) <b>Giant cell glioblastoma</b>: bizarre multinucleated giant cells, TP53/PTEN, IDH-wildtype. It is a GBM subtype, not a TSC lesion."}
 );
 
+// PACK 2 — NORMAL (28 text + 6 images)
+Q2.push(
+{lvl:"n",topic:"Trauma",opts:["Axonal swellings (APP+) in white matter","Hemorrhagic lesion of the corpus callosum","Hemorrhage in the dorsolateral rostral brainstem","Contrecoup cortical contusions"],a:3,
+ link:"Diffuse (traumatic) axonal injury and its Adams grading",
+ why:"DAI grade 1 = widespread axonal injury (β-APP+ swellings from about 2–3 h). Grade 2 adds a focal corpus callosum lesion, and grade 3 a dorsolateral rostral brainstem lesion. <b>Contusions</b> are <b>focal</b> injuries to the crests of gyri. They often coexist with DAI but are a different mechanism."},
+
+{lvl:"n",topic:"Trauma",opts:["Orbitofrontal cortex","Temporal poles","Inferolateral temporal gyri","Occipital poles"],a:3,
+ link:"Favourite sites of cerebral contusions",
+ why:"Whatever the point of impact, contusions cluster where the brain slides over rough bony floors and edges: the orbitofrontal surfaces and the temporal poles and undersurfaces. The <b>occipital poles</b> are relatively spared, even after a frontal blow, which is why 'contrecoup occipital contusion' is rare."},
+
+{lvl:"n",topic:"Trauma",opts:["Arterial bleeding, classically the middle meningeal artery","Associated skull fracture","Possible lucid interval","Spreads across suture lines"],a:3,
+ link:"Epidural hematoma",
+ why:"EDH is arterial, usually temporal with a fracture, has a biconvex shape, and can give a lucid interval. Because the dura is firmly attached at the sutures, an EDH <b>does not cross sutures</b>. A <b>subdural</b> hematoma does, but it doesn't cross the falx or tentorium."},
+
+{lvl:"n",topic:"Perinatal",opts:["Germinal matrix hemorrhage","Periventricular leukomalacia","Diffuse white matter gliosis","Parasagittal ulegyria"],a:3,
+ link:"Typical brain lesions of the preterm infant",
+ why:"The germinal matrix (involuting by about 34 weeks) and immature, pre-myelinating oligodendrocytes make GMH-IVH and PVL/diffuse white matter injury the preterm pattern. <b>Ulegyria</b> (mushroom gyri from watershed cortical scarring, deep in the sulci) is the <b>term</b> hypoxic-ischemic pattern, together with status marmoratus."},
+
+{lvl:"n",topic:"Toxic-metabolic",stem:"Find the wrong pairing",linkLabel:"The three correct pairings",opts:["Carbon monoxide — globus pallidus necrosis","Methanol — putaminal necrosis and optic nerve damage","Thiamine deficiency — mammillary bodies","Marchiafava–Bignami disease — basis pontis"],a:3,
+ link:"CO → pallidum, methanol → putamen + retina/optic nerve, Wernicke → mammillary bodies and periventricular gray",
+ why:"<b>Marchiafava–Bignami</b> is necrosis/demyelination of the <b>corpus callosum</b> (central layers, sparing the dorsal and ventral rims), classically in malnourished drinkers. The basis pontis is the classic site of osmotic demyelination (CPM)."},
+
+{lvl:"n",topic:"Eponyms",opts:["Simchowicz — granulovacuolar degeneration","Hirano — eosinophilic rod-like bodies","Fischer — 'drusige Nekrose' (neuritic plaques)","Bunina — small eosinophilic inclusions"],a:3,
+ link:"Eponymous lesions of the Alzheimer hippocampus/cortex",
+ why:"Simchowicz described GVD (1911), Hirano the actin rods (1965, in Guam ALS/PD), and Oskar Fischer the neuritic plaques (1907). <b>Bunina bodies</b> are the cystatin C/transferrin-positive inclusions of lower motor neurons in <b>ALS</b>."},
+
+{lvl:"n",topic:"Eponyms",opts:["Alzheimer type II astrocytes","Creutzfeldt cells","Opalski cells","Betz cells"],a:3,
+ link:"Abnormal cells that point to a disease process",
+ why:"Alzheimer II astrocytes (pale, enlarged nuclei) = hyperammonemia/hepatic disease. Creutzfeldt cells are reactive astrocytes with fragmented 'granular mitoses' in active demyelination and tumefactive MS, a classic glioma mimic. Opalski cells are large PAS+ cells in Wilson disease. <b>Betz cells</b> are the normal giant pyramidal neurons of layer V of the primary motor cortex."},
+
+{lvl:"n",topic:"Stains",opts:["Congo red","Thioflavin S","Crystal violet","Perls Prussian blue"],a:3,
+ link:"Amyloid stains",
+ why:"Congo red (apple-green birefringence under polarization), thioflavin S/T (fluorescence) and metachromatic crystal/methyl violet all detect β-pleated amyloid. <b>Perls</b> stains ferric iron, for example hemosiderin in old hemorrhage, superficial siderosis or NBIA."},
+
+{lvl:"n",topic:"Muscle",ctx:"Muscle biopsy · 8-year-old boy · calf hypertrophy · CK 20,000 U/L",stem:"Three findings fit this case. Which one doesn't?",opts:["Absent dystrophin labelling with rod-, C- and N-terminal antibodies","Necrotic and regenerating fibers with marked size variation","Endomysial fibrosis and fatty replacement","Perifascicular atrophy"],a:3,
+ link:"Duchenne muscular dystrophy",
+ why:"DMD shows dystrophin absence (Dys1–3, with revertant fibers possible), a dystrophic pattern, hypercontracted (opaque) fibers and fibrosis. Utrophin is upregulated. <b>Perifascicular atrophy</b> belongs to <b>dermatomyositis</b>, which also raises CK in children, but with rash and MxA."},
+
+{lvl:"n",topic:"Vascular",opts:["Occipital lobe","Thalamus","Hippocampus","Head of the caudate nucleus"],a:3,
+ link:"Posterior cerebral artery territory",
+ why:"The PCA supplies the occipital lobe, medial and inferior temporal lobe including the hippocampus, and thalamus (via thalamoperforators and thalamogeniculate branches, including the artery of Percheron). The <b>caudate head</b> is fed by the recurrent artery of Heubner (ACA) and the lenticulostriates (MCA)."},
+
+{lvl:"n",topic:"Brainstem",opts:["Nucleus ambiguus","Spinal trigeminal nucleus and tract","Lateral spinothalamic tract","Hypoglossal nucleus"],a:3,
+ link:"Lateral medullary (Wallenberg) infarct",
+ why:"A vertebral/PICA occlusion causes dysphagia (ambiguus), ipsilateral facial and contralateral body pain-temperature loss, Horner syndrome and ataxia. The <b>hypoglossal nucleus</b> is medial and is hit in the <b>medial medullary (Dejerine)</b> syndrome with the pyramid and medial lemniscus."},
+
+{lvl:"n",topic:"Spinal cord",opts:["Lateral corticospinal tracts","Spinothalamic tracts","Anterior horn cells","Dorsal columns"],a:3,
+ link:"Anterior spinal artery territory",
+ why:"The ASA supplies the anterior two-thirds of the cord. Infarction causes flaccid → spastic paraparesis and loss of pain and temperature. The <b>dorsal columns</b> are supplied by the paired posterior spinal arteries, so vibration and proprioception are <b>spared</b>."},
+
+{lvl:"n",topic:"Syndromes",opts:["Hemangioblastoma","Endolymphatic sac tumor","Pheochromocytoma","Vestibular schwannoma"],a:3,
+ link:"von Hippel–Lindau disease",
+ why:"VHL (3p25) brings CNS/retinal hemangioblastomas, ELST, pheochromocytoma/paraganglioma, ccRCC and pancreatic NETs/cysts. <b>Vestibular schwannomas</b> are the NF2 tumor."},
+
+{lvl:"n",topic:"Location",opts:["Meningioma","Solitary fibrous tumor","IgG4-related pachymeningitis","Pleomorphic xanthoastrocytoma"],a:3,
+ link:"Dural-based lesions",
+ why:"Meningioma, SFT (NAB2::STAT6) and IgG4-related hypertrophic pachymeningitis arise from the dura. <b>PXA</b> is superficial and cortical, often cystic with leptomeningeal involvement, but it is <b>intra-axial</b>. A 'dural tail' can fool you."},
+
+{lvl:"n",topic:"IHC",stem:"Find the wrong pairing",linkLabel:"The three correct pairings",opts:["Solitary fibrous tumor — nuclear STAT6","Meningioma — SSTR2A","Chordoma — brachyury","Hemangioblastoma — TTF1"],a:3,
+ link:"STAT6 (SFT), SSTR2A (meningioma), brachyury (notochordal)",
+ why:"Hemangioblastoma stromal cells are <b>inhibin-α</b>, S100, NSE and D2-40 positive. <b>TTF1</b> marks posterior-pituitary/pituicyte tumors (pituicytoma, granular cell tumor, spindle cell oncocytoma) and chordoid glioma of the third ventricle."},
+
+{lvl:"n",topic:"Prion",opts:["Scrapie","Bovine spongiform encephalopathy","Chronic wasting disease","Louping ill"],a:3,
+ link:"Animal prion diseases",
+ why:"Scrapie (sheep/goats), BSE (cattle, the source of vCJD) and CWD (cervids, spreading in North America and Scandinavia) are prion diseases. <b>Louping ill</b> is a tick-borne <b>flavivirus</b> encephalomyelitis of sheep, causing a non-suppurative encephalitis with Purkinje cell necrosis."},
+
+{lvl:"n",topic:"Eye",opts:["Flexner–Wintersteiner rosettes","Fleurettes","Extensive calcification","Schiller–Duval bodies"],a:3,
+ link:"Retinoblastoma",
+ why:"Retinoblastoma (RB1) shows FW rosettes, Homer Wright rosettes, photoreceptor-like fleurettes, necrosis and calcification. Optic nerve and choroidal invasion stage it. <b>Schiller–Duval bodies</b> are the glomeruloid structures of <b>yolk sac tumor</b>."},
+
+{lvl:"n",topic:"Muscle · stains",opts:["NADH-tetrazolium reductase","Succinate dehydrogenase","Cytochrome c oxidase","Myosin ATPase pH 9.4"],a:3,
+ link:"Oxidative enzyme histochemistry",
+ why:"NADH-TR, SDH (only nuclear-encoded, which is why it shows strongly subsarcolemmal 'ragged-blue' fibers) and COX map mitochondria, cores, targets and the intermyofibrillar network. <b>ATPase</b> separates <b>fiber types</b>, and its pH (4.3/4.6/9.4) inverts the pattern."},
+
+{lvl:"n",topic:"Muscle",stem:"Type 1 fibers: find the impostor",opts:["Slow twitch","Mitochondria- and myoglobin-rich","Dark with ATPase after preincubation at pH 4.3","Dark with ATPase at pH 9.4"],a:3,
+ link:"True for type 1 fibers",
+ why:"Type 1 fibers are slow, oxidative, dark on NADH/SDH, dark at acid pH 4.3 and <b>light at pH 9.4</b>. Type 2 fibers are dark at 9.4. Fiber-type grouping and type 2 atrophy (steroids, disuse) are read from these stains."},
+
+{lvl:"n",topic:"Nerve",opts:["Sural nerve","Superficial peroneal nerve","Superficial radial nerve","Median nerve at the wrist"],a:3,
+ link:"Standard sensory nerves for biopsy",
+ why:"Biopsy targets are pure (or nearly pure) sensory nerves with an acceptable deficit: sural, superficial peroneal (paired with peroneus brevis muscle for vasculitis) and superficial radial. The <b>median nerve</b> is mixed motor and sensory, so biopsy would cause an unacceptable deficit."},
+
+{lvl:"n",topic:"Infection",stem:"Find the false statement",linkLabel:"What is true about brain abscess",opts:["The capsule is often thinner on the ventricular side","Hematogenous abscesses favor the gray–white junction","A collagenous capsule forms over about 2 weeks","The capsule is built mainly by astrocytic glial fibers"],a:3,
+ link:"Thin medial wall → ventricular rupture risk; gray–white junction for septic emboli; capsule from about 10–14 days",
+ why:"The capsule is <b>collagen</b> made by fibroblasts derived from proliferating vessels, with granulation tissue inside it. Reactive gliosis forms only <b>outside</b> the capsule. Rupture into the ventricle (ventriculitis) is the feared complication."},
+
+{lvl:"n",topic:"Malformations",opts:["SHH","ZIC2","SIX3","L1CAM"],a:3,
+ link:"Holoprosencephaly genes",
+ why:"SHH, ZIC2, SIX3 and TGIF1 lead the HPE list (with maternal diabetes and trisomy 13 as other causes). <b>L1CAM</b> causes X-linked hydrocephalus with aqueductal stenosis, adducted thumbs and agenesis of the corpus callosum and corticospinal tracts."},
+
+{lvl:"n",topic:"Malformations",opts:["Anencephaly","Myelomeningocele","Occipital encephalocele","Chiari I malformation"],a:3,
+ link:"Neural tube defects",
+ why:"Anencephaly, myelomeningocele and encephalocele are failures of neural tube closure (folate!). <b>Chiari I</b> is tonsillar descent below the foramen magnum, often with syringomyelia. It is not a neural tube defect, unlike Chiari II, which goes with myelomeningocele."},
+
+{lvl:"n",topic:"Syndromes",stem:"Find the wrong pairing",linkLabel:"The three correct pairings",opts:["Sturge–Weber syndrome — somatic GNAQ","Tuberous sclerosis — TSC1/TSC2","NF1 — neurofibromin (17q11.2)","Ataxia-telangiectasia — ATR"],a:3,
+ link:"GNAQ R183Q (mosaic), TSC1/TSC2, NF1 on 17q",
+ why:"Ataxia-telangiectasia is caused by biallelic <b>ATM</b> mutations (11q22). It brings cerebellar cortical degeneration with Purkinje and granule cell loss, immunodeficiency, lymphomas and radiosensitivity. ATR causes Seckel syndrome."},
+
+{lvl:"n",topic:"Smears",stem:"Find the wrong pairing",linkLabel:"Correct intraoperative smear clues",opts:["Meningioma — whorls and nuclear pseudoinclusions","Lymphoma — discohesive cells with lymphoglandular bodies","Pilocytic astrocytoma — long bipolar 'hair-like' processes","Oligodendroglioma — abundant long fibrillary processes"],a:3,
+ link:"Classic smear cytology for these tumors",
+ why:"<b>Oligodendroglioma</b> smears show monotonous round nuclei, often naked, with delicate chromatin, <b>few or no processes</b>, and chicken-wire capillaries. Fibrillary processes point toward astrocytic tumors."},
+
+{lvl:"n",topic:"Gross",opts:["Pilocytic astrocytoma","Hemangioblastoma","Pleomorphic xanthoastrocytoma","Diffuse midline glioma"],a:3,
+ link:"Classic 'cyst with mural nodule'",
+ why:"PA, hemangioblastoma, PXA and ganglioglioma love the cyst + enhancing nodule pattern, and the cyst wall is often non-neoplastic. <b>Diffuse midline glioma</b> infiltrates and expands the pons, thalamus or spinal cord without a mural-nodule architecture."},
+
+{lvl:"n",topic:"CSF",opts:["Aqueductal stenosis","Colloid cyst of the third ventricle","Dandy–Walker malformation","Arachnoid fibrosis after subarachnoid hemorrhage"],a:3,
+ link:"Obstructive (non-communicating) hydrocephalus",
+ why:"Aqueductal stenosis, a colloid cyst at the foramina of Monro and Dandy–Walker (foraminal atresia) block CSF inside the ventricular system. <b>Post-hemorrhagic/post-meningitic arachnoid fibrosis</b> impairs absorption in the subarachnoid space, so it is <b>communicating</b> hydrocephalus."},
+
+{lvl:"n",topic:"Nerve",opts:["Small-fiber and autonomic involvement","Carpal tunnel syndrome","Congo red–positive endoneurial deposits","Onion bulbs"],a:3,
+ link:"Amyloid neuropathy (TTR or AL)",
+ why:"Amyloid neuropathy is axonal, small-fiber-predominant with dysautonomia, and often preceded by bilateral carpal tunnel syndrome. Mass spectrometry types the amyloid, which matters now that TTR therapies exist. <b>Onion bulbs</b> mean repeated de- and remyelination, as in CMT1, CIDP or HNPP-like disease."},
+
+/* ---------- images ---------- */
+{lvl:"n",topic:"Incidental · images",img:true,stem:"Three of these you shouldn't put in the diagnosis line",opts:[{img:"Histopathology of postmortem bacterial growth in a cerebral blood vessel.jpg",cap:"H&E"},{img:"Biondi bodies in human choroid plexus.jpg",cap:"H&E"},{img:"Corpora amylacea in the brain, HE 1.JPG",cap:"H&E"},{img:"Hypoxic neuronal injury, HE 1.jpg",cap:"H&E"}],a:3,
+ link:"Artefactual or incidental findings",
+ why:"1) Postmortem bacterial overgrowth in a vessel, with no inflammatory reaction. 2) Biondi bodies, ring-shaped filamentous inclusions in choroid plexus epithelium (aging). 3) Corpora amylacea, subpial and perivascular polyglucosan bodies of aging. 4) <b>Hypoxic-ischemic neuronal injury</b>: shrunken neurons with hypereosinophilic cytoplasm and pyknotic nuclei ('red neurons'), which needs several hours of survival after the insult. Don't confuse them with the 'dark neuron' handling artefact."},
+
+{lvl:"n",topic:"Sellar · images",img:true,opts:[{img:"Adamantinomatous craniopharyngioma - intermed mag.jpg",cap:"HPS"},{img:"Papillary craniopharyngioma - intermed mag.jpg",cap:"HPS"},{img:"Dermoid cyst intracranial.jpg",cap:"H&E"},{img:"Glioependymal cyst HE.jpg",cap:"H&E"}],a:3,
+ link:"Squamous epithelium",
+ why:"1) Adamantinomatous craniopharyngioma (palisading, stellate reticulum, wet keratin). 2) Papillary craniopharyngioma (non-keratinizing squamous epithelium around fibrovascular cores). 3) Epidermoid cyst (keratinizing squamous epithelium shedding laminated keratin). 4) <b>Glioependymal cyst</b>: lined by cuboidal-columnar ependymal-type cells on a glial wall, so it is neuroepithelial, not squamous."},
+
+{lvl:"n",topic:"Nerve · images",img:true,opts:[{img:"Vasculitic neuropathy - plastics - high mag.jpg",cap:"semithin"},{img:"Cryoglobulinaemic neuropathy vascultis nerve biopsy.jpg",cap:"H&E"},{img:"Granulomatous nerve inflammation.jpg",cap:"H&E"},{img:"Onion bulbs semi thin nerve biopsy.jpg",cap:"semithin, toluidine blue"}],a:3,
+ link:"Inflammatory / vasculitic nerve pathology",
+ why:"1) Vasculitic neuropathy (semithin section). 2) Cryoglobulinemic vasculitis of epineurial vessels. 3) Granulomatous inflammation of a nerve (think leprosy, sarcoidosis). 4) <b>Onion bulbs</b>: concentric Schwann cell processes around thinly myelinated axons, the signature of chronic de/remyelination, which is not inflammatory."},
+
+{lvl:"n",topic:"Tumors · images",img:true,opts:[{img:"Tanycytic ependymoma HE.jpg",cap:"H&E"},{img:"Myxopapillary ependymoma - intermed mag.jpg",cap:"HPS"},{img:"Subependymoma - intermed mag.jpg",cap:"H&E"},{img:"PilocyticAstrocytoma 20x HE.jpg",cap:"H&E"}],a:3,
+ link:"Ependymal tumors",
+ why:"1) Tanycytic ependymoma (fascicles of piloid cells, few rosettes; EMA dots help). 2) Myxopapillary ependymoma (cells around myxoid perivascular cores). 3) Subependymoma (nuclear clusters in a fibrillary, microcystic matrix). 4) <b>Pilocytic astrocytoma</b>, a biphasic piloid tumor. Tanycytic ependymoma is its classic mimic."},
+
+{lvl:"h",topic:"Neurodegeneration · images",img:true,opts:[{img:"Neurofibrillary tangles in the Hippocampus of an old person with Alzheimer-related pathology, immunohistochemistry for tau protein.JPG",cap:"IHC"},{img:"AGD tau.jpg",cap:"IHC"},{img:"FTDP-17 Tau immuno.jpg",cap:"IHC"},{img:"Huntington disease ubiquitin.jpg",cap:"IHC"}],a:3,
+ link:"Tau immunohistochemistry",
+ why:"1) Neurofibrillary tangles in the hippocampus (AT8-type tau). 2) Argyrophilic grain disease (tau). 3) FTDP-17 (MAPT mutation) tauopathy. 4) <b>Huntington disease</b> stained for <b>ubiquitin</b>: intranuclear and neuropil inclusions of mutant huntingtin in the caudate."},
+
+{lvl:"n",topic:"Tumors · images",img:true,opts:[{img:"Choroid plexus papilloma micrograph.jpg",cap:"H&E"},{img:"Papillary ependymoma HE.jpg",cap:"H&E"},{img:"Astroblastoma HE papillae.jpg",cap:"H&E"},{img:"Papillary meningioma HE.jpg",cap:"H&E"}],a:3,
+ link:"Neuroepithelial tumors with papillary architecture",
+ why:"1) Choroid plexus papilloma (single layer of cuboidal-columnar cells on fibrovascular cores; Kir7.1, TTR). 2) Papillary ependymoma. 3) Astroblastoma (perivascular pseudopapillae with hyalinized vessels). 4) <b>Papillary meningioma</b>, a <b>meningothelial</b> tumor with perivascular pseudopapillae. It is EMA/SSTR2A+ and often aggressive, but since CNS5 it is no longer automatically grade 3."}
+);
+
+// PACK 2 — HARD (27 text + 6 images)
+Q2.push(
+{lvl:"h",topic:"Autoimmune encephalitis",opts:["Anti-NMDA receptor","Anti-LGI1","Anti-GABA-B receptor","Anti-Hu (ANNA-1)"],a:3,
+ link:"Antibodies against neuronal cell-surface/synaptic antigens",
+ why:"NMDAR (ovarian teratoma), LGI1 (faciobrachial dystonic seizures, hyponatremia) and GABA-B (SCLC) target surface proteins. They are pathogenic, the biopsy is often bland, and patients respond to immunotherapy. <b>Hu</b> is <b>intracellular</b>: the antibody is a marker, damage is done by CD8 T cells (neuronophagia, microglial nodules), and the prognosis is poor."},
+
+{lvl:"h",topic:"Paraneoplastic",stem:"Find the wrong pairing",linkLabel:"The three correct pairings",opts:["Anti-Yo (PCA-1) — ovarian/breast carcinoma","Anti-Ma2 — testicular germ cell tumor","Anti-Hu — small cell lung carcinoma","Anti-Ri — testicular germ cell tumor"],a:3,
+ link:"Yo → gynecologic/breast (Purkinje loss); Ma2 → testis (limbic/diencephalic/brainstem); Hu → SCLC",
+ why:"<b>Anti-Ri (ANNA-2)</b> goes with <b>breast carcinoma and SCLC</b>, causing brainstem encephalitis, opsoclonus-myoclonus and jaw dystonia. In young men, testicular tumors point to Ma2 (and KLHL11 for rhombencephalitis)."},
+
+{lvl:"h",topic:"Epilepsy",opts:["Strictly unilateral hemispheric disease","CD8+ granzyme B+ T cells apposed to neurons","Progressive hemiatrophy","Bilateral, symmetric mesial temporal predilection"],a:3,
+ link:"Rasmussen encephalitis",
+ why:"Rasmussen encephalitis is a unilateral, T-cell-mediated (CD8, granzyme B) encephalitis with microglial nodules, neuronophagia, cortical stage progression and hemiatrophy. It may need hemispherotomy. <b>Bilateral mesial temporal</b> involvement suggests <b>limbic encephalitis</b> (LGI1, GAD65, paraneoplastic)."},
+
+{lvl:"h",topic:"Vascular",stem:"Infarct dating: find the wrong one",linkLabel:"Approximately right",opts:["Red (eosinophilic) neurons — from roughly 6–12 h","Neutrophil infiltration — peaks around days 1–3","Foamy macrophages — appear from about day 3–5","Cavitation with a gliotic wall — within 48 h"],a:3,
+ link:"Classic timeline of ischemic infarction",
+ why:"Red neurons appear within hours (about 6–12 h), neutrophils peak at 1–3 days, and macrophages arrive by 3–5 days and dominate for weeks. Reactive astrocytes are seen by about 1 week. <b>Cavitation</b> with a gliotic rim takes <b>weeks to months</b>, not hours."},
+
+{lvl:"h",topic:"Forensic",opts:["Inward (internal) beveling of the inner table","Abrasion collar around the skin defect","Soot/stippling at close range","Outward (external) beveling of the outer table"],a:3,
+ link:"Features of a gunshot entrance wound",
+ why:"At entrance, the bullet punches a clean hole in the outer table and cones the <b>inner</b> table, with an abrasion ring and, at close range, soot and stippling. <b>External beveling</b> marks the <b>exit</b>. Keyhole defects and tangential wounds are the fun exceptions."},
+
+{lvl:"h",topic:"Metabolic",opts:["Dentate gyrus granule cells","CA1 pyramidal neurons","Superficial cortical layers","Cerebellar Purkinje cells"],a:3,
+ link:"Damaged in severe hypoglycemia",
+ why:"Hypoglycemic neuronal death is excitotoxic and spreads from CSF surfaces: dentate granule cells, CA1 and superficial cortex. The <b>cerebellum and Purkinje cells are relatively spared</b>, in contrast to hypoxia-ischemia where Purkinje cells are among the first to die."},
+
+{lvl:"h",topic:"Perinatal",opts:["Globus pallidus","Subthalamic nucleus","Cochlear and oculomotor nuclei","Neocortex"],a:3,
+ link:"Bilirubin staining/necrosis in kernicterus",
+ why:"Unconjugated bilirubin yellows the pallidum, STN, hippocampus (CA2-3), cranial nerve nuclei (oculomotor, vestibular, cochlear) and cerebellar dentate/Purkinje cells. Chronically this gives choreoathetosis, gaze palsy and deafness. The <b>neocortex</b> is characteristically <b>spared</b>."},
+
+{lvl:"h",topic:"Toxic",opts:["Heroin vapor inhalation ('chasing the dragon')","Toluene abuse","Methotrexate ± radiotherapy","Domoic acid poisoning"],a:3,
+ link:"Toxic leukoencephalopathies",
+ why:"Heroin pyrolysate gives spongiform leukoencephalopathy (cerebellar and posterior WM, vacuolated myelin), toluene a diffuse leukoencephalopathy with trilaminar inclusions in macrophages, and methotrexate a necrotizing leukoencephalopathy with axonal spheroids. <b>Domoic acid</b> (amnesic shellfish poisoning) is an excitotoxin killing <b>hippocampal and amygdala neurons</b>, so it is a gray matter disease."},
+
+{lvl:"h",topic:"Metabolic",opts:["Hepatic encephalopathy","Wilson disease","Urea cycle disorder","Alexander disease"],a:3,
+ link:"Alzheimer type II astrocytes",
+ why:"Hyperammonemia from any cause, whether cirrhosis, portosystemic shunt, Wilson disease or OTC deficiency, gives large, pale, vesicular astrocyte nuclei, with little cytoplasm and GFAP down. <b>Alexander disease</b> (GFAP gain of function) is defined by <b>Rosenthal fibers</b> in subpial and perivascular astrocytes."},
+
+{lvl:"h",topic:"Sellar",opts:["Pituicytoma","Granular cell tumor of the sellar region","Spindle cell oncocytoma","Adamantinomatous craniopharyngioma"],a:3,
+ link:"TTF1-positive tumors of the posterior pituitary (pituicyte lineage)",
+ why:"These three are now thought to form a spectrum of a single pituicyte-derived entity (nuclear TTF1, S100). Granular cells are PAS+ and spindle cell oncocytoma is oncocytic. <b>ACP</b> is an epithelial tumor of the Rathke pouch, with CTNNB1 mutation and nuclear β-catenin."},
+
+{lvl:"h",topic:"Nerve sheath",opts:["SMARCB1","LZTR1","NF2","SPRED1"],a:3,
+ link:"Schwannoma predisposition genes",
+ why:"SMARCB1 and LZTR1 schwannomatosis (often painful, mosaic INI1 loss in SMARCB1 cases) and NF2-related schwannomatosis. <b>SPRED1</b> causes <b>Legius syndrome</b>: café-au-lait macules without neurofibromas or schwannomas."},
+
+{lvl:"h",topic:"Nerve sheath",opts:["Arises from a neurofibroma or a nerve","Loss of H3 K27me3","Perivascular hypercellularity with 'marbled' fascicles","Diffuse, strong S100 and SOX10"],a:3,
+ link:"Malignant peripheral nerve sheath tumor",
+ why:"MPNST: NF1 association, PRC2 loss (K27me3 lost in most sporadic and radiation-associated cases), alternating cellularity, necrosis and mitoses. S100/SOX10 are <b>patchy or lost</b>. <b>Diffuse strong</b> S100/SOX10 should make you think of <b>cellular schwannoma</b> or melanoma."},
+
+{lvl:"h",topic:"Gliomas",opts:["Minigemistocytes / gliofibrillary oligodendrocytes","'Chicken-wire' capillaries","Microcalcifications","Strong, diffuse p53 accumulation"],a:3,
+ link:"Compatible with oligodendroglioma, IDH-mutant, 1p/19q-codeleted",
+ why:"Minigemistocytes and GFOCs are GFAP+ cells that still belong to oligodendroglioma, alongside a capillary network and calcification. <b>Strong diffuse p53</b> (TP53 mutation) is the IDH-mutant <b>astrocytoma</b> profile, together with ATRX loss. It should make you double-check a reported codeletion."},
+
+{lvl:"h",topic:"Lymphoma",opts:["Primary CNS DLBCL","Intravascular large B-cell lymphoma","Lymphomatoid granulomatosis, grade 3","Dural MALT lymphoma"],a:3,
+ link:"Aggressive large B-cell lymphoma involving the CNS",
+ why:"PCNSL, intravascular LBCL (cells confined to vessel lumina, multifocal infarcts, random skin biopsy) and high-grade EBV+ LYG are aggressive. <b>Dural MALT lymphoma</b> (extranodal marginal zone, often in women) mimics meningioma and is <b>indolent</b>."},
+
+{lvl:"h",topic:"Histiocytoses",stem:"Find the wrong pairing",linkLabel:"The three correct pairings",opts:["Langerhans cell histiocytosis — CD1a+","Erdheim–Chester disease — CD1a−","Rosai–Dorfman disease — S100+ with emperipolesis","Juvenile xanthogranuloma — langerin (CD207)+"],a:3,
+ link:"LCH CD1a/langerin+; ECD CD68+/CD163+, CD1a−; RDD S100+, OCT2+, emperipolesis",
+ why:"<b>JXG</b> family histiocytes are CD68+/CD163+/factor XIIIa+ and <b>CD1a−/langerin−</b>, with Touton giant cells. Langerin and CD1a define LCH, in which BRAF V600E or MAP2K1 mutations are common, as in ECD."},
+
+{lvl:"h",topic:"Tauopathies",opts:["'Knife-edge' frontotemporal atrophy","Relative sparing of the posterior superior temporal gyrus","Ballooned neurons ('Pick cells')","Tufted astrocytes"],a:3,
+ link:"Pick disease",
+ why:"Pick disease has severe lobar atrophy sparing the posterior two-thirds of the STG, Pick bodies in the dentate gyrus and cortex, ballooned neurons and 3R tau. <b>Tufted astrocytes</b> are 4R lesions of <b>PSP</b>."},
+
+{lvl:"h",topic:"Synucleinopathy",opts:["Dermal autonomic nerve fibers","Submandibular gland","Enteric nervous system","Skeletal muscle fibers"],a:3,
+ link:"Peripheral sites where phospho-α-synuclein can be biopsied/detected",
+ why:"Skin biopsy (pilomotor and sudomotor fibers), submandibular gland and the enteric plexus (gut-first hypothesis) carry p-syn deposits. Cardiac sympathetic denervation explains abnormal MIBG scans. <b>Skeletal muscle fibers</b> are not a synuclein reservoir. Seed amplification assays now complement the biopsy."},
+
+{lvl:"h",topic:"TDP-43",opts:["Limbic-predominant age-related TDP-43 encephalopathy (LATE)","Perry syndrome","Sporadic inclusion body myositis","Multiple system atrophy"],a:3,
+ link:"TDP-43 proteinopathies outside classic ALS/FTLD",
+ why:"LATE-NC, Perry syndrome (DCTN1: parkinsonism, depression, hypoventilation and pallidonigral TDP-43) and sIBM (sarcoplasmic TDP-43) all accumulate TDP-43. <b>MSA</b> is an <b>α-synucleinopathy</b>."},
+
+{lvl:"h",topic:"Neurogenetics",opts:["SCA1","SCA2","SCA6","SCA10"],a:3,
+ link:"Coding CAG (polyglutamine) spinocerebellar ataxias",
+ why:"SCA1, SCA2, SCA3, SCA6 (CACNA1A), SCA7, SCA17 and DRPLA are polyQ diseases. <b>SCA10</b> is an intronic <b>ATTCT</b> pentanucleotide expansion (ATXN10) with ataxia and epilepsy, common in Mexico and Brazil."},
+
+{lvl:"h",topic:"Muscle · EM",opts:["Nemaline rods","Cytoplasmic bodies","Z-band streaming","Tubular aggregates"],a:3,
+ link:"Derived from Z-disc material",
+ why:"Nemaline rods (α-actinin), cytoplasmic bodies and Z-band streaming are Z-disc pathology, found in nemaline and myofibrillar myopathies. <b>Tubular aggregates</b> are stacks of <b>sarcoplasmic reticulum</b> tubules, red on GT and NADH-dark, in STIM1/ORAI1 tubular aggregate myopathy and periodic paralyses."},
+
+{lvl:"h",topic:"Alcohol",ctx:"Autopsy · 61-year-old with long-standing alcohol use disorder",stem:"Three findings fit this case. Which one doesn't?",opts:["Mammillary bodies with hemosiderin, capillary prominence and neuronal sparing","Folial atrophy of the anterior-superior vermis","Osmotic demyelination in the basis pontis","Purkinje loss maximal in the lateral hemispheres, sparing the vermis"],a:3,
+ link:"Alcohol-related neuropathology",
+ why:"Chronic Wernicke, alcoholic cerebellar degeneration (anterior-superior vermis!) and CPM after rapid sodium correction are the classic trio. <b>Hemisphere-predominant, vermis-sparing</b> Purkinje loss suggests something else: paraneoplastic degeneration, a toxic drug (phenytoin) or genetic ataxia."},
+
+{lvl:"h",topic:"Nerve",opts:["Fite–Faraco stain shows bacilli","Schwann cells harbor the organism","Cooler body regions preferentially affected","Symmetric, length-dependent large-fiber neuropathy"],a:3,
+ link:"Leprous neuropathy",
+ why:"<i>M. leprae</i> loves Schwann cells and cool areas (ulnar, peroneal, great auricular nerves, and skin) and shows up best with Fite, a modified acid-fast stain. Patterns range from tuberculoid granulomas to foamy lepromatous macrophages. It produces <b>mononeuritis multiplex and patchy small-fiber sensory loss</b>, not a symmetric length-dependent large-fiber neuropathy."},
+
+{lvl:"h",topic:"Spinal cord",ctx:"Autopsy · 52-year-old woman born in Jamaica · slowly progressive spastic paraparesis and bladder dysfunction",stem:"Three findings fit this case. Which one doesn't?",opts:["Symmetric degeneration of lateral columns, maximal in thoracic cord","Perivascular lymphocytic cuffs with foamy macrophages","Infected CD4+ T cells","Anterior horn cell loss with Bunina bodies"],a:3,
+ link:"HTLV-1-associated myelopathy / tropical spastic paraparesis",
+ why:"HAM/TSP is a chronic inflammatory myelopathy, predominantly of the thoracic lateral columns, driven by HTLV-1-infected CD4 T cells. It is endemic in the Caribbean, Japan and South America. <b>Bunina bodies</b> with lower motor neuron loss are <b>ALS</b>."},
+
+{lvl:"h",topic:"Medulloblastoma",opts:["Large cell/anaplastic histology","Chromothripsis","Frequent germline TP53 (Li–Fraumeni)","Excellent prognosis"],a:3,
+ link:"Medulloblastoma, SHH-activated and TP53-mutant",
+ why:"This subtype affects older children, with LCA morphology, chromothripsis, MYCN/GLI2 amplification and germline TP53 in about half of cases. Its prognosis is <b>poor</b>, the worst among SHH tumors. Excellent prognosis belongs to WNT tumors and to infant SHH desmoplastic/MBEN."},
+
+{lvl:"h",topic:"Ependymoma",stem:"Find the wrong pairing",linkLabel:"The three correct pairings",opts:["Supratentorial YAP1-fused — infants, favorable outcome","Posterior fossa group B — adolescents/adults, favorable","Posterior fossa group A — infants, less favorable","Spinal, MYCN-amplified — indolent, rarely disseminates"],a:3,
+ link:"Molecular groups of ependymoma (CNS5)",
+ why:"<b>Spinal ependymoma, MYCN-amplified</b> is <b>aggressive</b>: young adults, early leptomeningeal dissemination and poor survival despite often-classic morphology. Most spinal ependymomas (NF2-related or sporadic) are indeed indolent."},
+
+{lvl:"h",topic:"IDH",stem:"Find the false statement",linkLabel:"What holds true",opts:["IDH1 p.R132H accounts for roughly 90% of IDH1 mutations in gliomas","IDH2 mutations are relatively enriched in oligodendroglioma","Non-canonical IDH1 R132C is enriched in Li–Fraumeni-associated gliomas","A negative R132H immunostain excludes an IDH mutation"],a:3,
+ link:"IDH mutation facts",
+ why:"R132H IHC is <b>specific but not exhaustive</b>. About 10% of mutations are non-canonical (R132C/G/S/L, IDH2 R172), so a negative stain in a young adult with a diffuse glioma calls for sequencing. In patients over about 55 with a classic GBM, sequencing is often skipped."},
+
+{lvl:"h",topic:"Epilepsy",stem:"Find the wrong pairing",linkLabel:"ILAE FCD type III, correctly paired",opts:["FCD IIIa — with hippocampal sclerosis","FCD IIIc — adjacent to a vascular malformation","FCD IIId — next to an early-life lesion (trauma, ischemia, encephalitis)","FCD IIIb — with hippocampal sclerosis"],a:3,
+ link:"FCD III = cortical dyslamination associated with another principal lesion",
+ why:"<b>FCD IIIb</b> is dyslamination <b>adjacent to a tumor</b>, typically a LEAT such as ganglioglioma or DNET. IIIa = with HS, IIIc = vascular malformation (for example cavernoma, Sturge–Weber), IIId = other lesions acquired in early life."},
+
+/* ---------- images ---------- */
+{lvl:"h",topic:"Growth patterns · images",img:true,opts:[{img:"Subpial growth.jpg",cap:"H&E"},{img:"Oligodendroglioma discrete invasion HE.jpg",cap:"H&E"},{img:"Glioblastoma brain infiltration zone.jpg",cap:"H&E"},{img:"Meningioma - brain invasion - intermed mag.jpg",cap:"HPS"}],a:3,
+ link:"Diffuse glioma infiltration (secondary structures of Scherer)",
+ why:"1) Subpial condensation. 2) Perineuronal satellitosis in oligodendroglioma. 3) Single-cell infiltration at the edge of a glioblastoma. These are diffuse-glioma growth patterns. 4) <b>Meningioma brain invasion</b>: irregular tongue-like protrusions of tumor into GFAP+ parenchyma without an intervening leptomeningeal layer. On its own it makes a meningioma <b>CNS WHO grade 2</b>."},
+
+{lvl:"h",topic:"Germ cell · images",img:true,opts:[{img:"Yolk sac tumor schiller duval body.jpg",cap:"H&E"},{img:"Yolk sac tumor sinusoid epithelia.jpg",cap:"H&E"},{img:"Choroid plexus in teratoma -- intermed mag.jpg",cap:"H&E"},{img:"Neuropathology case VIII 03.jpg",cap:"H&E"}],a:3,
+ link:"Non-germinomatous germ cell tumor components",
+ why:"1) Schiller–Duval body and 2) sinusoidal/reticular epithelium of yolk sac tumor (AFP, glypican-3, SALL4). 3) Mature choroid plexus and neural tissue in a teratoma (here an ovarian one; the same tissues show up in intracranial teratomas). 4) <b>Germinoma</b> (third ventricle floor): large cells with clear cytoplasm and prominent nucleoli mixed with lymphocytes, OCT4/KIT/PLAP+. It is <b>radiosensitive</b> and treated differently from NGGCT."},
+
+{lvl:"h",topic:"Inflammation · images",img:true,opts:[{img:"Sarkoidosis muscle.jpg",cap:"H&E"},{img:"Cerebral Giant-Cell Vasculitis.jpg",cap:"Elastica"},{img:"HE aspergillus multinucleated giant cells.jpg",cap:"H&E"},{img:"Emperipolesis rosai dorfman erkrankung.jpg",cap:"H&E"}],a:3,
+ link:"Granulomatous inflammation with multinucleated giant cells",
+ why:"1) Sarcoid granulomas in muscle. 2) Giant cell arteritis/granulomatous angiitis with elastic lamina destruction. 3) Fungal (Aspergillus) granulomatous reaction. 4) <b>Rosai–Dorfman disease</b>: large pale S100+/OCT2+ histiocytes with intact lymphocytes inside them (<b>emperipolesis</b>). It is a histiocytic neoplasm/proliferation (KRAS/MAP2K1), not an epithelioid granuloma, and a classic dural meningioma mimic."},
+
+{lvl:"h",topic:"Vessels · images",img:true,opts:[{img:"GBM-endothelial proliferations.jpg",cap:"H&E"},{img:"Glioblastoma endothelial proliferations.jpg",cap:"H&E"},{img:"Anaplastic ganglioglioma endothelial prolifartions HE.jpg",cap:"H&E"},{img:"PA endothelproliferation.jpg",cap:"H&E"}],a:3,
+ link:"Microvascular proliferation that counts as a high-grade criterion",
+ why:"1–2) Glomeruloid MVP in glioblastoma. 3) MVP in an anaplastic ganglioglioma. 4) <b>Pilocytic astrocytoma</b>: glomeruloid vessels are common and <b>do not upgrade</b> a PA. Neither do degenerative atypia or infarct-like necrosis. Without the clinical context this is the classic frozen-section trap."},
+
+{lvl:"n",topic:"Myxoid · images",img:true,opts:[{img:"Myxopapillary Ependymoma Alcian-blue.jpg",cap:"Alcian blue"},{img:"Pilomyxoid astrocytoma 01.jpg",cap:"Alcian blue"},{img:"Alcian blue chordoid meningioma.jpg",cap:"Alcian blue"},{img:"Chordoma - high mag.jpg",cap:"HPS"}],a:3,
+ link:"Primary CNS tumors with myxoid matrix",
+ why:"1) Myxopapillary ependymoma. 2) Pilomyxoid astrocytoma (angiocentric, monomorphous, in a myxoid background). 3) Chordoid meningioma. All three are neuroepithelial or meningothelial CNS tumors. 4) <b>Chordoma</b>: physaliphorous cells in a myxoid matrix. It is a <b>notochordal bone tumor</b> of the clivus or sacrum, brachyury+ and keratin+."},
+
+{lvl:"h",topic:"Pineal · images",img:true,opts:[{img:"Pineocytoma - high mag.jpg",cap:"HPS"},{img:"PPID intermed mag HE.jpg",cap:"H&E"},{img:"Pinealis parechymal tumor.jpg",cap:"smear, H&E"},{img:"PTPR HE low magnification.jpg",cap:"H&E"}],a:3,
+ link:"Pineal parenchymal tumors",
+ why:"1) Pineocytoma with pineocytomatous rosettes. 2) PPTID. 3) Intraoperative smear of a PPTID with calcospherites (synaptophysin+, neurofilament+ on sections). 4) <b>Papillary tumor of the pineal region</b>: an epithelial-looking papillary tumor derived from the <b>subcommissural organ</b> ependymal cells. It is keratin+ (CK18), with frequent chromosome 10/PTEN alterations and a high recurrence rate."}
+);
+
+// PACK 2 — TRYME… (30 text + 3 images)
+Q2.push(
+{lvl:"t",topic:"Pediatric gliomas",stem:"Find the wrong pairing",linkLabel:"The three correct pairings",opts:["pHGG RTK1 — PDGFRA amplification","pHGG MYCN — MYCN (± ID2) amplification, primitive/epithelioid cells","Diffuse midline glioma — H3 K27-altered or EZHIP","pHGG RTK2 — infants with ALK fusions"],a:3,
+ link:"Diffuse pediatric-type HGG, H3-wt and IDH-wt, has three methylation subtypes (RTK1, RTK2, MYCN)",
+ why:"<b>pHGG RTK2</b> shows EGFR amplification and TERTp mutation, with a somewhat better outcome. <b>Infants with ALK/ROS1/NTRK/MET fusions</b> belong to a different type, <b>infant-type hemispheric glioma</b>."},
+
+{lvl:"t",topic:"Fusions",opts:["KIAA1549::BRAF","MYB::QKI","SLC44A1::PRKCA","CIC::DUX4"],a:3,
+ link:"Fusions defining glial/glioneuronal tumors",
+ why:"KIAA1549::BRAF = pilocytic astrocytoma, MYB::QKI = angiocentric glioma, SLC44A1::PRKCA = papillary glioneuronal tumor. <b>CIC::DUX4</b> is a <b>CIC-rearranged sarcoma</b>, a small round cell mesenchymal tumor that can arise in the CNS (WT1 and ETV4 positive)."},
+
+{lvl:"t",topic:"Syndromes",opts:["Pituitary blastoma","Pleuropulmonary blastoma","Ciliary body medulloepithelioma","Choroid plexus carcinoma"],a:3,
+ link:"DICER1 syndrome",
+ why:"Germline DICER1 gives pleuropulmonary blastoma, cystic nephroma, ovarian Sertoli–Leydig tumors, ciliary body medulloepithelioma, pituitary blastoma (infantile Cushing), pineoblastoma and primary intracranial sarcoma, DICER1-mutant. <b>Choroid plexus carcinoma</b> points to <b>TP53/Li–Fraumeni</b>."},
+
+{lvl:"t",topic:"SMARCB1",opts:["Desmoplastic myxoid tumor of the pineal region, SMARCB1-mutant","Poorly differentiated chordoma","Epithelioid MPNST","Conventional chordoma"],a:3,
+ link:"Loss of nuclear INI1",
+ why:"The CNS5 desmoplastic myxoid pineal tumor, poorly differentiated chordoma (children, clivus, more aggressive) and about 70% of epithelioid MPNST lose SMARCB1. <b>Conventional chordoma</b> retains INI1 but is brachyury+."},
+
+{lvl:"t",topic:"Spinal",opts:["Frequent cytokeratin expression","GATA3 negative","Distinct DNA methylation profile","Frequent germline SDHx mutations"],a:3,
+ link:"Cauda equina neuroendocrine tumor (formerly paraganglioma)",
+ why:"CNS5 renamed spinal 'paraganglioma' because these tumors differ from true paragangliomas: they are often keratin+ and GATA3−, have their own methylation class, and <b>usually lack SDH/hereditary paraganglioma syndrome mutations</b>. The sustentacular network and gangliocytic or ependymal features still remain."},
+
+{lvl:"t",topic:"Meningioma",opts:["≥20 mitoses per 10 HPF (≥12.5/mm²)","TERT promoter mutation","CDKN2A/B homozygous deletion","Brain invasion"],a:3,
+ link:"Each one alone makes a meningioma CNS WHO grade 3",
+ why:"Grade 3 = frank anaplasia, ≥20 mitoses/10 HPF, TERTp mutation or CDKN2A/B HD. <b>Brain invasion</b>, ≥4 mitoses/10 HPF, chordoid or clear cell subtype, or ≥3 of the 5 'minor' features (sheeting, small cells, macronucleoli, hypercellularity, spontaneous necrosis) give <b>grade 2</b>."},
+
+{lvl:"t",topic:"Channelopathies",stem:"Find the wrong pairing",linkLabel:"The three correct pairings",opts:["Myotonia congenita (Thomsen/Becker) — CLCN1","Paramyotonia congenita — SCN4A","Andersen–Tawil syndrome — KCNJ2","Hypokalemic periodic paralysis — RYR1"],a:3,
+ link:"Chloride (CLCN1), sodium (SCN4A) and Kir2.1 (KCNJ2) channelopathies",
+ why:"HypoPP is caused by <b>CACNA1S</b> (type 1) or <b>SCN4A</b> (type 2) gating-pore mutations. Its biopsy shows vacuoles and tubular aggregates. <b>RYR1</b> brings central core disease, malignant hyperthermia susceptibility and exertional rhabdomyolysis."},
+
+{lvl:"t",topic:"Mitochondrial",opts:["Alpers–Huttenlocher syndrome","SANDO","MIRAS","MELAS"],a:3,
+ link:"POLG-related disease",
+ why:"POLG (mtDNA polymerase γ) gives Alpers (refractory status, occipital cortical necrosis, valproate liver failure), SANDO (sensory ataxic neuropathy, dysarthria, ophthalmoparesis) and MIRAS. <b>MELAS</b> is mostly the mtDNA tRNA-Leu <b>m.3243A>G</b> mutation, with SSVs and stroke-like lesions not respecting vascular territories."},
+
+{lvl:"t",topic:"Mitochondrial",opts:["SURF1","PDHA1","MT-ATP6 (m.8993T>G)","TYMP"],a:3,
+ link:"Recognized causes of Leigh syndrome",
+ why:"Leigh syndrome (subacute necrotizing encephalomyelopathy) comes from more than 100 genes: COX assembly (SURF1), PDH complex (PDHA1), complex I and V (MILS/NARP m.8993). <b>TYMP</b> causes <b>MNGIE</b>: GI dysmotility, cachexia, ptosis/PEO, neuropathy and leukoencephalopathy."},
+
+{lvl:"t",topic:"Storage",opts:["Tay–Sachs disease","Niemann–Pick type C","Sanfilippo syndrome (MPS III)","Krabbe disease"],a:3,
+ link:"Neuronal storage ('ballooned' neurons)",
+ why:"GM2 gangliosidosis (membranous cytoplasmic bodies, meganeurites), NPC (cholesterol and gangliosides, filipin, plus tangles) and MPS III (secondary ganglioside storage, zebra bodies) distend neurons. <b>Krabbe</b> (GALC) is a <b>leukodystrophy</b>: psychosine kills oligodendrocytes and globoid macrophages fill the white matter."},
+
+{lvl:"t",topic:"Leukodystrophies",opts:["Alexander disease (infantile)","Canavan disease","Megalencephalic leukoencephalopathy with subcortical cysts","Pelizaeus–Merzbacher disease"],a:3,
+ link:"Macrocephaly is a classic feature",
+ why:"Infantile Alexander (GFAP), Canavan (ASPA, spongy degeneration, high NAA) and MLC (MLC1/GLIALCAM, swollen white matter with cysts) are all macrocephalic. <b>PMD</b> (PLP1 duplication) is a <b>hypomyelinating</b> leukodystrophy with nystagmus and a tigroid myelin pattern, and head size is normal or small."},
+
+{lvl:"t",topic:"Tauopathies",opts:["Primary age-related tauopathy (PART)","Tangle-predominant senile dementia","Chronic traumatic encephalopathy","Aging-related tau astrogliopathy"],a:3,
+ link:"Neuronal tangles made of 3R+4R tau (AD-type)",
+ why:"PART and tangle-predominant dementia (Aβ-poor, medial temporal tangles) and CTE share AD-type mixed 3R/4R neuronal tau. <b>ARTAG</b> is <b>astroglial and 4R</b>: thorn-shaped astrocytes (subpial, subependymal, perivascular, white matter) and granular/fuzzy astrocytes in gray matter."},
+
+{lvl:"t",topic:"Synucleinopathy",opts:["Pontine nuclei","Middle cerebellar peduncles","Inferior olivary nuclei","Dorsolateral putamen"],a:3,
+ link:"Olivopontocerebellar system (MSA-C)",
+ why:"MSA-C hits the pontine nuclei and transverse fibers (hot-cross-bun sign), the MCPs, the olives and Purkinje cells. The <b>dorsolateral putamen</b> (slit-like hyperintense rim, brown discoloration) is the core of <b>striatonigral degeneration</b>, the MSA-P lesion. Most brains show both."},
+
+{lvl:"t",topic:"Infection",opts:["PAS-positive, diastase-resistant foamy macrophages","Ziehl–Neelsen negative (unlike M. avium)","Oculomasticatory myorhythmia","Gram-negative diplococci on smear"],a:3,
+ link:"CNS Whipple disease",
+ why:"<i>Tropheryma whipplei</i> is a <b>Gram-positive</b> actinomycete. PAS+ sickle-form particles in macrophages, ZN negativity (vs MAC) and PCR seal the diagnosis, and OMM is pathognomonic. Gram-negative diplococci say <i>Neisseria</i>."},
+
+{lvl:"t",topic:"Infection",stem:"Find the wrong pairing",linkLabel:"The three correct pairings",opts:["Naegleria fowleri — olfactory route after warm freshwater exposure","Acanthamoeba — trophozoites and cysts in tissue","Balamuthia mandrillaris — can affect immunocompetent hosts","Naegleria fowleri — abundant cysts in brain tissue"],a:3,
+ link:"Free-living amoebae of the CNS",
+ why:"Naegleria causes fulminant <b>primary amebic meningoencephalitis</b>, and only <b>trophozoites</b> are found in tissue. Acanthamoeba and Balamuthia cause subacute <b>granulomatous</b> amebic encephalitis with both trophozoites and double-walled cysts. Balamuthia often follows a skin lesion and also affects immunocompetent people."},
+
+{lvl:"t",topic:"Parasites",opts:["Vesicular","Colloidal vesicular","Granular nodular","Racemose"],a:3,
+ link:"Escobar stages of a parenchymal cysticercus",
+ why:"Vesicular (viable larva, scolex) → colloidal (dying, inflammation, edema) → granular nodular → calcified nodular. <b>Racemose</b> is not a stage. It is a <b>form</b>: grape-like proliferating membranes without a scolex in the basal cisterns or ventricles, causing arachnoiditis and hydrocephalus."},
+
+{lvl:"t",topic:"Fungi",stem:"Find the wrong pairing",linkLabel:"The three correct pairings",opts:["Mucorales — broad, ribbon-like, pauciseptate hyphae","Aspergillus — septate hyphae, acute-angle dichotomous branching","Cryptococcus — narrow-based budding yeast","Blastomyces — narrow-based budding yeast"],a:3,
+ link:"Tissue morphology of CNS fungi",
+ why:"<b>Blastomyces</b> shows thick double-contoured walls with <b>broad-based</b> budding (8–15 µm). Narrow-based budding with a mucicarminophilic capsule is Cryptococcus. Mucorales invade vessels with right-angle branching, and Aspergillus does too with acute angles."},
+
+{lvl:"t",topic:"Viral",opts:["Progressive multifocal leukoencephalopathy","JCV granule cell neuronopathy","JCV encephalopathy (cortical pyramidal neurons)","Subacute sclerosing panencephalitis"],a:3,
+ link:"JC polyomavirus diseases",
+ why:"JCV also infects neurons: cerebellar granule cells (cerebellar atrophy) and cortical pyramidal neurons (JCE, a deletion variant), besides oligodendrocytes and astrocytes in PML. <b>SSPE</b> is a late <b>measles</b> panencephalitis, with Cowdry A inclusions in neurons and oligodendrocytes and tangles."},
+
+{lvl:"t",topic:"Viral",opts:["Subacute sclerosing panencephalitis","Measles inclusion body encephalitis","Acute post-measles encephalomyelitis","Progressive rubella panencephalitis"],a:3,
+ link:"Neurological complications of measles virus",
+ why:"Measles gives ADEM-like post-infectious encephalomyelitis (days), MIBE in immunocompromised hosts (months) and SSPE (years, defective M protein). <b>Progressive rubella panencephalitis</b> is SSPE's rare cousin, caused by <b>rubella</b> (congenital or postnatal)."},
+
+{lvl:"t",topic:"Viral",opts:["West Nile virus","Japanese encephalitis virus","Eastern equine encephalitis virus","Enterovirus A71"],a:3,
+ link:"Arthropod-borne (mosquito) encephalitides",
+ why:"WNV (poliomyelitis-like anterior horn involvement, deep gray, brainstem), JEV (thalamus, SN) and EEE (basal ganglia, neutrophil-rich, severe) are arboviruses. <b>EV-A71</b> (hand-foot-mouth outbreaks) is fecal-oral and causes <b>rhombencephalitis</b> of the medulla and dentate with acute flaccid paralysis."},
+
+{lvl:"t",topic:"NMJ",stem:"Find the wrong pairing",linkLabel:"The three correct pairings",opts:["Early-onset AChR myasthenia — thymic follicular hyperplasia","AChR myasthenia — association with thymoma","Lambert–Eaton — P/Q-type VGCC antibodies, SCLC","MuSK myasthenia — thymic hyperplasia common"],a:3,
+ link:"Thymic and tumor associations at the neuromuscular junction",
+ why:"<b>MuSK-MG</b> (IgG4, bulbar and neck weakness, muscle atrophy, poor response to pyridostigmine) <b>rarely shows thymic pathology</b>, so thymectomy is not recommended. Thymoma goes with AChR (and titin) antibodies."},
+
+{lvl:"t",topic:"Nerve",opts:["PMP22 duplication","MPZ (P0)","GJB1 (connexin-32)","MFN2"],a:3,
+ link:"Genes of demyelinating or intermediate CMT (CMT1/CMTX1)",
+ why:"PMP22 duplication (CMT1A, onion bulbs), MPZ (CMT1B, also axonal forms) and GJB1 (CMTX1, intermediate conduction, with CNS white matter episodes) affect myelin and Schwann cells. <b>MFN2</b> (mitofusin-2) causes <b>CMT2A</b>, the commonest <b>axonal</b> CMT, sometimes with optic atrophy."},
+
+{lvl:"t",topic:"Melanocytic",opts:["Uveal melanoma","Meningeal melanocytoma","Blue nevus","Superficial spreading cutaneous melanoma"],a:3,
+ link:"GNAQ/GNA11-driven melanocytic neoplasms",
+ why:"Uveal melanoma (with BAP1 loss → metastasis), primary meningeal melanocytic tumors (melanocytoma, melanoma) and blue nevi share GNAQ/GNA11 (or PLCB4/CYSLTR2) mutations. This helps separate a <b>primary</b> CNS melanocytic tumor from <b>metastatic cutaneous melanoma</b>, which is BRAF/NRAS/UV-signature."},
+
+{lvl:"t",topic:"Syndromes",opts:["Ultra-hypermutated glioma","Loss of MMR protein (e.g., PMS2) in non-neoplastic cells","Café-au-lait macules mimicking NF1","1p/19q codeletion"],a:3,
+ link:"Constitutional mismatch repair deficiency (CMMRD)",
+ why:"Biallelic MMR germline mutations (PMS2 most often) cause childhood hypermutant HGG with giant cells, lymphomas and GI cancers. IHC shows loss in normal cells too. CMMRD tumors respond to checkpoint inhibitors. <b>1p/19q codeletion</b> defines adult IDH-mutant oligodendroglioma."},
+
+{lvl:"t",topic:"Medulloblastoma",opts:["ELP1","SUFU","GPR161","APC"],a:3,
+ link:"Germline predisposition to SHH medulloblastoma",
+ why:"ELP1 (SHH-3, adolescents), SUFU (infants, desmoplastic/MBEN), GPR161 (infants) and PTCH1/TP53 predispose to SHH MB. <b>APC</b> (FAP/Turcot) gives <b>WNT-activated</b> medulloblastoma without CTNNB1 mutation."},
+
+{lvl:"t",topic:"Sellar",opts:["Ciliated columnar epithelium","Mucin-producing goblet cells","Possible squamous metaplasia","Wet keratin with nuclear β-catenin clusters"],a:3,
+ link:"Rathke cleft cyst",
+ why:"RCC is a remnant of Rathke's pouch: a cyst lined by ciliated/cuboidal epithelium with goblet cells and colloid. Squamous metaplasia can occur and causes confusion. <b>Wet keratin + nuclear β-catenin</b> means <b>adamantinomatous craniopharyngioma</b>. RCC with squamous metaplasia lacks both."},
+
+{lvl:"t",topic:"Syndromes",opts:["Atypical neurofibromatous neoplasm of uncertain biologic potential (ANNUBP)","Juvenile myelomonocytic leukemia","Wild-type GIST","Endolymphatic sac tumor"],a:3,
+ link:"NF1-associated neoplasms",
+ why:"NF1 brings neurofibromas → ANNUBP → MPNST, optic and brainstem gliomas, JMML, KIT/PDGFRA-wildtype GIST, pheochromocytoma and glomus tumors. <b>ELST</b> (papillary, temporal bone) belongs to <b>VHL</b>."},
+
+{lvl:"t",topic:"History",opts:["Neurofibrillary tangles (1906)","Pick bodies (1911)","Alzheimer type I/II glia (1912)","Lewy bodies (1912)"],a:3,
+ link:"Described by Alois Alzheimer himself",
+ why:"Alzheimer described the tangles in Auguste Deter (1906), the argyrophilic inclusions later named Pick bodies (1911, Pick having described the lobar atrophy), and the abnormal glia in Wilson pseudosclerosis (1912). <b>Lewy bodies</b> were described by <b>Fritz Heinrich Lewy</b> in 1912, while working in Alzheimer's Munich laboratory. Tretiakoff named them in 1919."},
+
+{lvl:"t",topic:"History",stem:"Find the wrong pairing",linkLabel:"The three correct pairings",opts:["Gajdusek — transmission of kuru (Nobel 1976)","Prusiner — prions (Nobel 1997)","Ramón y Cajal — neuron doctrine (Nobel 1906)","Golgi — the first myelin stain"],a:3,
+ link:"Nobel-winning neuroscience",
+ why:"Golgi's contribution is the <b>'black reaction'</b> (potassium dichromate + silver nitrate), which impregnates whole neurons. Cajal used it to prove the neuron doctrine, and they shared the 1906 Nobel. The first practical myelin stain is <b>Weigert's</b> hematoxylin method (1880s)."},
+
+{lvl:"t",topic:"Vascular",opts:["Encephalopathy with central corpus callosum 'snowball' lesions","Branch retinal artery occlusions","Low-frequency sensorineural hearing loss","Longitudinally extensive myelitis with AQP4-IgG"],a:3,
+ link:"Susac syndrome",
+ why:"Susac syndrome is an immune-mediated endotheliopathy of brain, retina and cochlea. Callosal 'snowballs and spokes', BRAO (with Gass plaques on fluorescein angiography) and hearing loss complete the triad. <b>AQP4-IgG LETM</b> is <b>NMOSD</b>."},
+
+/* ---------- images ---------- */
+{lvl:"t",topic:"Metastasis · images",img:true,opts:[{img:"Adenocarcinoma infiltrating the brain.jpg",cap:"H&E"},{img:"Karzinommetastase HE10x.jpg",cap:"H&E"},{img:"Brain metastasis - high mag.jpg",cap:"HPS"},{img:"GBM nested epithelial.jpg",cap:"H&E"}],a:3,
+ link:"Metastatic carcinoma",
+ why:"1) Adenocarcinoma infiltrating brain. 2) Carcinoma metastasis, sharply demarcated from the parenchyma. 3) Brain metastasis. 4) <b>Glioblastoma with epithelial/nested features</b>: a GBM that mimics carcinoma. It infiltrates instead of pushing, and it is GFAP/OLIG2/SOX2+ and keratin (AE1/AE3) −/patchy. Use CAM5.2 or CK7 rather than AE1/AE3, which cross-reacts with GFAP."},
+
+{lvl:"t",topic:"Melanotic · images",img:true,opts:[{img:"Melanocytoma Histopathology HE20x.jpg",cap:"H&E"},{img:"Melanoma infiltrating the brain.jpg",cap:"H&E"},{img:"Malignant melanoma HMB45.jpg",cap:"HMB45"},{img:"Psammomatous melanotic schwannoma - high mag.jpg",cap:"H&E"}],a:3,
+ link:"Melanocytic neoplasms",
+ why:"1) Meningeal melanocytoma. 2) Melanoma infiltrating brain. 3) Melanoma, HMB45+. 4) <b>Malignant melanotic nerve sheath tumor</b> (formerly melanotic schwannoma): pigmented Schwann cells with psammoma bodies, collagen IV pericellular, <b>PRKAR1A</b> loss (Carney complex). It is a nerve sheath tumor, not a melanocytic one, and is aggressive despite bland cytology."},
+
+{lvl:"t",topic:"Meningioma · images",img:true,opts:[{img:"Metaplastic osseous meningioma.jpg",cap:"H&E"},{img:"Metaplastic xanthomatous meningioma.jpg",cap:"H&E"},{img:"Secretory meningioma PAS.jpg",cap:"PAS"},{img:"Rhabdoid Meningioma Histopathology.jpg",cap:"H&E"}],a:3,
+ link:"Benign-behaving meningioma subtypes (grade 1 unless other criteria)",
+ why:"1) Metaplastic (osseous) and 2) metaplastic (xanthomatous) meningiomas. 3) Secretory meningioma with PAS+ pseudopsammoma bodies (KLF4/TRAF7). 4) <b>Rhabdoid</b> meningioma: eccentric nuclei, prominent nucleoli and paranuclear inclusions. CNS5 no longer grades it 3 automatically, but rhabdoid cells should prompt <b>BAP1</b> IHC. BAP1 loss marks an aggressive tumor and possible germline <b>BAP1 tumor predisposition</b>."}
+);
+
+Q.forEach(q=>{ q.pack = 1; }); Q2.forEach(q=>{ q.pack = 2; Q.push(q); });
 </script>
 <script>
 (function(){
@@ -707,7 +1196,7 @@ Q.push(
     n:{name:"Normal", c:"var(--n)", desc:"Resident-proof. Mostly.", pips:1},
     h:{name:"Hard", c:"var(--h)", desc:"Board-exam territory.", pips:2},
     t:{name:"Tryme…", c:"var(--t)", desc:"For the sign-out room legends.", pips:3},
-    x:{name:"Mix", c:"var(--hema)", desc:"All 100, shuffled.", pips:0}
+    x:{name:"Mix", c:"var(--hema)", desc:"Everything, gentle ramp.", pips:0}
   };
   const $ = s => document.querySelector(s);
   const imgURL = (f,w) => "https://commons.wikimedia.org/wiki/Special:FilePath/" + encodeURIComponent(f) + "?width=" + (w||800);
@@ -717,7 +1206,8 @@ Q.push(
 
   Q.forEach((q,i)=>{ q.id = i; });
 
-  let level = "n", length = 10;
+  let level = "n", length = 10, pack = 0;
+  const inPack = q => !pack || q.pack === pack;
   let deck = [], idx = 0, score = 0, streak = 0, best = 0, answers = [], locked = false, order = [];
 
   // ---------- theme ----------
@@ -732,7 +1222,7 @@ Q.push(
     const box = $("#levels"); box.innerHTML = "";
     ["n","h","t","x"].forEach(k=>{
       const L = LV[k];
-      const n = k==="x" ? Q.length : Q.filter(q=>q.lvl===k).length;
+      const n = Q.filter(q=>inPack(q) && (k==="x" || q.lvl===k)).length;
       const b = document.createElement("button");
       b.className = "level"; b.style.setProperty("--c", L.c);
       b.setAttribute("aria-pressed", String(level===k));
@@ -742,6 +1232,13 @@ Q.push(
       box.appendChild(b);
     });
   }
+  document.querySelectorAll("#packs button").forEach(b=>{
+    b.onclick = () => {
+      pack = +b.dataset.p;
+      document.querySelectorAll("#packs button").forEach(x=>x.setAttribute("aria-pressed", String(x===b)));
+      renderLevels();
+    };
+  });
   document.querySelectorAll("#lengths button").forEach(b=>{
     b.onclick = () => {
       length = +b.dataset.n;
@@ -756,7 +1253,7 @@ Q.push(
 
   // ---------- game ----------
   function start(){
-    let pool = level==="x" ? Q.slice() : Q.filter(q=>q.lvl===level);
+    let pool = Q.filter(q=>inPack(q) && (level==="x" || q.lvl===level));
     pool = shuffle(pool);
     if (level==="x") { // keep a gentle ramp: normal → hard → tryme
       const r = {n:0,h:1,t:2};
@@ -783,7 +1280,8 @@ Q.push(
     setProgress(idx);
     $("#topic").textContent = q.topic || "";
     $("#stem").textContent = q.stem || "Find the odd one out";
-    $("#sub").textContent = q.img ? "Tap a slide to answer · 🔍 to zoom" : "";
+    $("#sub").textContent = q.img ? "Tap a slide to answer · 🔍 to zoom" : (q.hint || "");
+    const ctx = $("#ctx"); ctx.classList.toggle("hidden", !q.ctx); ctx.innerHTML = q.ctx || "";
     $("#revealBox").innerHTML = "";
     order = shuffle([0,1,2,3]);
     const box = $("#opts"); box.innerHTML = ""; box.classList.toggle("img", !!q.img); box.classList.remove("done");
@@ -837,8 +1335,8 @@ Q.push(
     }
     const last = idx === deck.length-1;
     $("#revealBox").innerHTML = `<div class="reveal">
-      <div class="verdict ${ok?"ok":"bad"}">${ok ? "✓ Correct" : "✗ Not quite"} <span style="font-weight:600;font-size:15px;color:var(--muted)">— the odd one is ${oddLabel}</span></div>
-      <div class="link"><small>What the other three share</small>${q.link}</div>
+      <div class="verdict ${ok?"ok":"bad"}">${ok ? "✓ Correct" : "✗ Not quite"} <span class="ans">The answer is ${oddLabel}</span></div>
+      <div class="link"><small>${q.linkLabel || "What the other three share"}</small>${q.link}</div>
       <div class="why">${q.why}</div>${credits}
       <button class="next" id="nextBtn">${last ? "See results" : "Next →"}</button></div>`;
     $("#nextBtn").onclick = next;
