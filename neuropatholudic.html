@@ -1,0 +1,931 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Neuropatholudic</title>
+<meta name="description" content="Find the odd one out — a neuropathology game for people who read Gallyas for fun.">
+<meta name="theme-color" content="#1b1530">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='28' fill='%23e8679a'/%3E%3Ccircle cx='24' cy='26' r='7' fill='%235b45a8'/%3E%3Ccircle cx='41' cy='24' r='5' fill='%235b45a8'/%3E%3Ccircle cx='36' cy='41' r='8' fill='%23fff'/%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#f6f2f7; --bg2:#ffffff; --ink:#1d1726; --muted:#6c6478; --line:#e4dcea;
+  --hema:#5b45a8; --hema-soft:#ece7fa; --eosin:#d94f86; --eosin-soft:#fbe6ef;
+  --ok:#1f9d63; --ok-soft:#e0f5eb; --bad:#d23c3c; --bad-soft:#fbe5e5;
+  --n:#2f9e8f; --h:#d9822b; --t:#c0325a;
+  --shadow:0 1px 2px rgba(40,20,60,.06),0 6px 24px rgba(40,20,60,.08);
+  --r:16px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#15111e; --bg2:#1f1a2b; --ink:#efeaf6; --muted:#a79fb6; --line:#332b44;
+    --hema:#a593f0; --hema-soft:#2a2342; --eosin:#f27aa8; --eosin-soft:#3a1f2d;
+    --ok:#3ccf8e; --ok-soft:#163327; --bad:#ff6b6b; --bad-soft:#3a1c1f;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 28px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#15111e; --bg2:#1f1a2b; --ink:#efeaf6; --muted:#a79fb6; --line:#332b44;
+  --hema:#a593f0; --hema-soft:#2a2342; --eosin:#f27aa8; --eosin-soft:#3a1f2d;
+  --ok:#3ccf8e; --ok-soft:#163327; --bad:#ff6b6b; --bad-soft:#3a1c1f;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 28px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-text-size-adjust:100%}
+body{min-height:100vh;min-height:100dvh}
+button{font:inherit;color:inherit}
+a{color:var(--hema)}
+.wrap{max-width:860px;margin:0 auto;padding:16px 16px calc(32px + env(safe-area-inset-bottom))}
+.hidden{display:none!important}
+
+/* header */
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:-.02em;font-size:20px;cursor:pointer;user-select:none}
+.dot{width:26px;height:26px;border-radius:50%;background:radial-gradient(circle at 35% 40%,var(--hema) 0 28%,transparent 29%),radial-gradient(circle at 66% 34%,var(--hema) 0 18%,transparent 19%),var(--eosin);flex:none}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.iconbtn{display:grid;place-items:center;border:1px solid var(--line);background:var(--bg2);border-radius:12px;min-width:44px;height:44px;padding:0 12px;cursor:pointer;font-size:14px;color:var(--muted)}
+.iconbtn:hover{color:var(--ink)}
+
+/* home */
+.hero{padding:28px 0 8px}
+.hero h1{font-size:clamp(34px,8vw,56px);line-height:1;margin:0 0 10px;letter-spacing:-.04em}
+.hero h1 span{background:linear-gradient(90deg,var(--hema),var(--eosin));-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{color:var(--muted);margin:0;max-width:56ch}
+.section-label{font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin:26px 0 10px;font-weight:700}
+.levels{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+@media (min-width:720px){.levels{grid-template-columns:repeat(4,1fr)}}
+.level{position:relative;text-align:left;border:2px solid var(--line);background:var(--bg2);border-radius:var(--r);padding:16px 14px 14px;cursor:pointer;box-shadow:var(--shadow);transition:transform .12s,border-color .12s;min-height:118px}
+.level:hover{transform:translateY(-2px)}
+.level[aria-pressed="true"]{border-color:var(--c)}
+.level .name{font-weight:800;font-size:19px;color:var(--c)}
+.level .desc{font-size:13px;color:var(--muted);margin-top:4px}
+.level .count{position:absolute;right:12px;top:12px;font-size:12px;font-weight:700;color:var(--muted)}
+.level .pips{display:flex;gap:3px;margin-top:10px}
+.level .pips i{width:18px;height:5px;border-radius:3px;background:var(--line)}
+.level .pips i.on{background:var(--c)}
+.seg{display:flex;gap:8px;flex-wrap:wrap}
+.seg button{border:2px solid var(--line);background:var(--bg2);border-radius:999px;padding:8px 16px;min-height:44px;cursor:pointer;font-weight:600}
+.seg button[aria-pressed="true"]{border-color:var(--hema);background:var(--hema-soft);color:var(--hema)}
+.cta{display:block;width:100%;margin-top:26px;border:0;border-radius:var(--r);padding:16px;font-size:18px;font-weight:800;color:#fff;background:linear-gradient(90deg,var(--hema),var(--eosin));cursor:pointer;box-shadow:var(--shadow);min-height:56px}
+.cta:active{transform:scale(.99)}
+.foot{margin-top:28px;font-size:13px;color:var(--muted);text-align:center}
+.foot button{background:none;border:0;color:var(--hema);text-decoration:underline;cursor:pointer;padding:6px}
+
+/* quiz */
+.hud{position:sticky;top:0;z-index:5;background:var(--bg);padding:8px 0 10px;margin:-8px 0 6px}
+.hudrow{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:14px;color:var(--muted);font-weight:600}
+.badge{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#fff;background:var(--c)}
+.bar{height:10px;border-radius:999px;background:var(--line);overflow:hidden;margin-top:8px;position:relative}
+.bar>div{height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,var(--hema),var(--eosin));transition:width .45s cubic-bezier(.2,.8,.2,1)}
+.score b{color:var(--ink)}
+.streak{color:var(--eosin)}
+.topic{font-size:13px;color:var(--muted);font-weight:600;margin:10px 0 2px}
+.stem{font-size:clamp(22px,5.4vw,28px);font-weight:800;letter-spacing:-.02em;margin:0 0 4px;line-height:1.2}
+.sub{font-size:14px;color:var(--muted);margin:0 0 14px}
+.opts{display:grid;grid-template-columns:1fr;gap:10px}
+@media (min-width:620px){.opts{grid-template-columns:1fr 1fr}}
+.opt{position:relative;display:flex;align-items:center;gap:12px;text-align:left;border:2px solid var(--line);background:var(--bg2);border-radius:14px;padding:14px;min-height:64px;cursor:pointer;box-shadow:var(--shadow);transition:border-color .12s,transform .08s,background .2s;font-size:16px;line-height:1.35}
+.opts:not(.done) .opt:hover:not([disabled]){border-color:var(--hema)}
+.opt:active:not([disabled]){transform:scale(.99)}
+.opt .k{flex:none;width:30px;height:30px;border-radius:9px;display:grid;place-items:center;font-weight:800;font-size:14px;background:var(--hema-soft);color:var(--hema)}
+.opt[disabled]{cursor:default}
+.opt.correct{border-color:var(--ok);background:var(--ok-soft)}
+.opt.correct .k{background:var(--ok);color:#fff}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.opt.wrong .k{background:var(--bad);color:#fff}
+.opt.dim{opacity:.55}
+.opt.imgopt.dim{opacity:.85}
+/* image options */
+.opts.img{grid-template-columns:1fr 1fr;gap:8px}
+.opt.imgopt{display:block;padding:0;overflow:hidden;min-height:0;aspect-ratio:1/1}
+.opt.imgopt img{display:block;width:100%;height:100%;object-fit:cover;background:var(--line)}
+.opt.imgopt .k{position:absolute;left:8px;top:8px;box-shadow:0 1px 4px rgba(0,0,0,.25);background:rgba(255,255,255,.92);color:#2a1f45}
+.opt.imgopt .cap{position:absolute;left:8px;bottom:8px;font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px;background:rgba(20,14,30,.72);color:#fff;max-width:calc(100% - 64px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.opt.imgopt .zoom{position:absolute;right:6px;bottom:6px;width:40px;height:40px;border-radius:12px;border:0;background:rgba(20,14,30,.72);color:#fff;display:grid;place-items:center;cursor:zoom-in}
+.opt.imgopt.correct,.opt.imgopt.wrong{border-width:4px}
+.opt.imgopt .err{position:absolute;inset:0;display:grid;place-items:center;text-align:center;font-size:13px;color:var(--muted);padding:12px}
+@media (min-width:620px){.opt.imgopt{aspect-ratio:4/3}}
+
+.reveal{margin-top:16px;border-radius:var(--r);background:var(--bg2);border:1px solid var(--line);box-shadow:var(--shadow);padding:16px 16px 18px;animation:pop .25s ease-out}
+@keyframes pop{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.verdict{font-size:20px;font-weight:800;margin:0 0 8px;display:flex;align-items:center;gap:8px}
+.verdict.ok{color:var(--ok)} .verdict.bad{color:var(--bad)}
+.link{margin:0 0 10px;padding:10px 12px;border-left:4px solid var(--hema);background:var(--hema-soft);border-radius:8px;font-size:15px}
+.link small{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--hema);font-weight:800;margin-bottom:2px}
+.why{font-size:15.5px;line-height:1.6}
+.why b{color:var(--eosin)}
+.credits-line{margin-top:12px;font-size:11.5px;color:var(--muted);line-height:1.5}
+.credits-line a{color:var(--muted)}
+.next{margin-top:16px;width:100%;min-height:52px;border:0;border-radius:14px;background:var(--ink);color:var(--bg);font-weight:800;font-size:17px;cursor:pointer}
+.kbd{font-size:12px;color:var(--muted);text-align:center;margin-top:10px}
+@media (hover:none){.kbd{display:none}}
+
+/* end */
+.result{text-align:center;padding:24px 0 6px}
+.big{font-size:clamp(56px,16vw,96px);font-weight:900;letter-spacing:-.05em;line-height:1;background:linear-gradient(90deg,var(--hema),var(--eosin));-webkit-background-clip:text;background-clip:text;color:transparent}
+.rank{font-size:22px;font-weight:800;margin-top:8px}
+.rank-sub{color:var(--muted);margin-top:4px}
+.breakdown{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:22px}
+.bd{background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:12px;text-align:center}
+.bd .v{font-weight:900;font-size:22px;color:var(--c)}
+.bd .l{font-size:12px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.08em}
+.review{margin-top:22px}
+.ritem{background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:10px}
+.ritem h4{margin:0 0 6px;font-size:15px}
+.ritem .ans{font-size:14px;margin-bottom:6px}
+.ritem .ans .ok{color:var(--ok);font-weight:700}
+.ritem .ans .bad{color:var(--bad);font-weight:700;text-decoration:line-through}
+.ritem .why{font-size:14px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}
+.ghost{min-height:52px;border-radius:14px;border:2px solid var(--line);background:var(--bg2);font-weight:800;cursor:pointer}
+
+/* lightbox */
+.lb{position:fixed;inset:0;z-index:50;background:rgba(10,6,16,.92);display:flex;align-items:center;justify-content:center;padding:16px;touch-action:pinch-zoom}
+.lb img{max-width:100%;max-height:calc(100dvh - 90px);border-radius:10px;box-shadow:0 10px 40px rgba(0,0,0,.5)}
+.lb .x{position:absolute;top:calc(10px + env(safe-area-inset-top));right:12px;width:48px;height:48px;border-radius:50%;border:0;background:rgba(255,255,255,.14);color:#fff;font-size:24px;cursor:pointer}
+.lb .lcap{position:absolute;bottom:calc(14px + env(safe-area-inset-bottom));left:0;right:0;text-align:center;color:#ddd;font-size:13px;padding:0 16px}
+
+/* credits page */
+.clist{font-size:13px;line-height:1.55;color:var(--muted)}
+.clist li{margin-bottom:6px;word-break:break-word}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="brand" id="homeBtn" title="Home"><span class="dot"></span>Neuropatholudic</div>
+    <button class="iconbtn" id="themeBtn" aria-label="Toggle light/dark theme"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor"/></svg></button>
+  </div>
+
+  <!-- HOME -->
+  <section id="home">
+    <div class="hero">
+      <h1>Find the <span>odd one out</span>.</h1>
+      <p>Four choices: diagnoses, stains, genes, lesions, slides. Three of them belong together. Work out what links them, then pick the one that doesn't fit.</p>
+    </div>
+
+    <div class="section-label">Difficulty</div>
+    <div class="levels" id="levels"></div>
+
+    <div class="section-label">Length</div>
+    <div class="seg" id="lengths">
+      <button data-n="10" aria-pressed="true">10</button>
+      <button data-n="20" aria-pressed="false">20</button>
+      <button data-n="0" aria-pressed="false">All</button>
+    </div>
+
+    <button class="cta" id="startBtn">Start</button>
+    <div class="foot">Photos from Wikimedia Commons under their own licenses · <button id="creditsBtn">Image credits</button></div>
+  </section>
+
+  <!-- QUIZ -->
+  <section id="quiz" class="hidden">
+    <div class="hud">
+      <div class="hudrow">
+        <span><span class="badge" id="lvlBadge">Normal</span></span>
+        <span id="counter">1 / 10</span>
+        <span class="score">Score <b id="score">0</b> <span class="streak" id="streak"></span></span>
+      </div>
+      <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" id="pbar"><div id="pfill"></div></div>
+    </div>
+    <div class="topic" id="topic"></div>
+    <h2 class="stem" id="stem">Find the odd one out</h2>
+    <p class="sub" id="sub"></p>
+    <div class="opts" id="opts"></div>
+    <div id="revealBox"></div>
+    <div class="kbd">Keys 1–4 to answer · Enter for next</div>
+  </section>
+
+  <!-- END -->
+  <section id="end" class="hidden">
+    <div class="result">
+      <div class="big" id="pct">0%</div>
+      <div class="rank" id="rank"></div>
+      <div class="rank-sub" id="rankSub"></div>
+    </div>
+    <div class="breakdown" id="breakdown"></div>
+    <div class="row2">
+      <button class="ghost" id="againBtn">Play again</button>
+      <button class="cta" style="margin:0" id="menuBtn">Menu</button>
+    </div>
+    <div class="review" id="review"></div>
+  </section>
+
+  <!-- CREDITS -->
+  <section id="credits" class="hidden">
+    <h2>Image credits</h2>
+    <p class="sub">All micrographs are from Wikimedia Commons and are reused under the license indicated. Click a file to see the original page, author and full license.</p>
+    <ul class="clist" id="clist"></ul>
+    <button class="cta" id="creditsBack">Back</button>
+  </section>
+</div>
+
+<div class="lb hidden" id="lb" role="dialog" aria-modal="true">
+  <img id="lbImg" alt="">
+  <button class="x" id="lbClose" aria-label="Close">×</button>
+  <div class="lcap" id="lbCap"></div>
+</div>
+
+<script>
+const Q = [];
+// Wikimedia Commons image credits (file name -> [license, author])
+const CREDITS = {
+"Duchenne-muscular-dystrophy.jpg":["Public domain","Dr. Edwin P. Ewing, Jr. (CDC)"],
+"Dermatomyositis - intermed mag.jpg":["CC BY-SA 3.0","Nephron"],
+"Congenital nemaline myopathy.jpg":["CC BY-SA 3.0","Jensflorian"],
+"Denervation atrophy - atp94 - intermed mag.jpg":["CC BY-SA 3.0","Nephron"],
+"Aspergillosis cerebral grocott.jpg":["CC BY-SA 3.0","Jensflorian"],
+"Dpk-meningitis-fungus-in-brain.jpg":["Public domain","U.S. Government"],
+"Cryptococcosis - GMS stain (5280754344).jpg":["CC BY-SA 2.0","Yale Rosen"],
+"Actinomycetes CNS grocott.jpg":["CC BY-SA 4.0","Jensflorian"],
+"PSP tau globose tangles threads mesencephalon.jpg":["CC BY-SA 3.0","Jensflorian"],
+"AGD gallays.jpg":["CC BY-SA 3.0","Jensflorian"],
+"Alzheimer neuritic plaque gallyas stain.jpg":["CC BY-SA 3.0","Jensflorian"],
+"Lewy neurites alpha synuclein.jpg":["CC BY-SA 3.0","Jensflorian"],
+"Secretory meningioma HE x200.jpg":["CC BY-SA 3.0","Jensflorian"],
+"Angiomatous meningioma HE x100.jpg":["CC BY-SA 3.0","Jensflorian"],
+"Microcystic meningeoma HE x100.jpg":["CC BY-SA 3.0","Jensflorian"],
+"Chordoid meningoma HE x200.jpg":["CC BY-SA 3.0","Jensflorian"],
+"Cerebral taenia solium infection.jpg":["CC BY-SA 3.0","Jensflorian"],
+"Cerebral schistosomiasis.jpg":["CC BY-SA 3.0","Jensflorian"],
+"Cerebral Toxoplasmosis bradyzoites.jpg":["CC BY-SA 3.0","Jensflorian"],
+"HSV HE 20x.jpg":["CC BY-SA 3.0 de","Marvin 101"],
+"Antoni A area of schwannoma with Verocay bodies.png":["CC BY 4.0","Pezzali LG, Rostirolla GF, Luiz C, et al."],
+"Perineurioma HE.jpg":["CC BY-SA 3.0","Jensflorian"],
+"Nerve root schwannoma - intermed mag.jpg":["CC BY-SA 3.0","Nephron"],
+"Meningioma fibromatous variant.jpg":["CC BY-SA 2.0 de","Jensflorian"],
+"Hirano body, HE 1.JPG":["CC BY-SA 3.0","Patho"],
+"Granulovacuolar degeneration.JPG":["CC BY-SA 3.0","Patho"],
+"Histopathology of neurofibrillary tangles in Alzheimer's disease.jpg":["CC0","Mikael Häggström, M.D."],
+"Lewy body in the substantia nigra from a person with Parkinson's disease.jpg":["CC BY-SA 4.0","Tulemo"],
+"SEGA HE.jpg":["CC BY-SA 4.0","Sbrandner"],
+"Tuber HE 20191014 011.jpg":["CC BY-SA 4.0","Jensflorian"],
+"Multifocal micronodular pneumocyte hyperplasia - TSC -- high mag.jpg":["CC BY-SA 4.0","Nephron"],
+"Giant cell glioblastoma HE X200.jpg":["CC BY-SA 3.0","Jensflorian"],
+"Pineoblastoma HE x200.jpg":["CC BY-SA 3.0","Jensflorian"],
+"Medulloblastoma HE x200.jpg":["CC BY-SA 3.0","Jensflorian"],
+"ATRT-HE-Overview.jpg":["CC BY-SA 2.0 de","Marvin 101"],
+"Primary CNS lymphoma - high mag.jpg":["CC BY-SA 3.0","Nephron"],
+"Neurocytoma clear cell appearance.jpg":["CC BY-SA 3.0","Jensflorian"],
+"Clear cell ependymoma HE.jpg":["CC BY-SA 3.0","Jensflorian"],
+"DNT HE stain.jpg":["CC BY-SA 4.0","Jensflorian"],
+"HE clear cell meningioma.jpg":["CC BY-SA 4.0","Jensflorian"],
+"Neuroblastoma Homer Wright rosettes HE.jpg":["CC BY-SA 3.0","Jensflorian"],
+"Retinoblastoma rosette.jpg":["Public domain","Armed Forces Institute of Pathology"],
+"Ependymoblastomatous Rosette.jpg":["CC BY 3.0","Marvin 101"],
+"Ependymoma pseudorosette.jpg":["CC BY-SA 3.0","Jensflorian"],
+"Cavernom.jpg":["CC BY-SA 2.0 de","Marvin 101"],
+"Teleangiectasia brain.jpg":["CC BY-SA 4.0","Jensflorian"],
+"AVM1 HE.jpg":["CC BY-SA 4.0","藤澤孝志"],
+"CAA hemorrhage HE.jpg":["CC BY-SA 3.0","Jensflorian"],
+"CJD Cortical spongiosis.jpg":["CC BY-SA 3.0","Jensflorian"],
+"CJD kuru plaque MV2 variant.jpg":["CC BY-SA 3.0","Jensflorian"],
+"Variant Creutzfeldt-Jakob disease (vCJD), typical amyloid plaques, H&E.jpg":["Public domain","CDC / Teresa Hammett, Sherif Zaki"],
+"Histopathology of cerebral vascular edema.jpg":["CC0","Mikael Häggström, M.D."],
+"Ragged red fibres - gtc - very high mag.jpg":["CC BY-SA 3.0","Nephron"],
+"Cox-deficient fibers in mitochondrial myopathy.jpg":["CC BY-SA 4.0","Jensflorian"],
+"Mitochondrial myopathy crystalline inclusions.jpg":["CC BY-SA 4.0","Jensflorian"],
+"Pompe vacuoles.jpg":["CC BY-SA 3.0","Jensflorian"]
+};
+
+// NORMAL — 34 questions
+Q.push(
+{lvl:"n",topic:"Neurodegeneration",opts:["Lewy body","Papp–Lantos body","Lewy neurite","Pick body"],a:3,
+ link:"α-synuclein aggregates",
+ why:"Lewy bodies and Lewy neurites (PD/DLB) and Papp–Lantos bodies, the glial cytoplasmic inclusions of MSA, are all α-synuclein. The <b>Pick body</b> is a round, argyrophilic (Bielschowsky+, Gallyas−) <b>3R-tau</b> inclusion, typically in dentate granule cells."},
+
+{lvl:"n",topic:"Tumors · molecular",opts:["Pleomorphic xanthoastrocytoma","Ganglioglioma","Epithelioid glioblastoma","Cerebellar pilocytic astrocytoma"],a:3,
+ link:"BRAF p.V600E is the frequent driver",
+ why:"V600E is found in about 60–80% of PXA, 20–60% of gangliogliomas and about 50% of epithelioid GBM. <b>Cerebellar pilocytic astrocytoma</b> is driven by the <b>KIAA1549::BRAF fusion</b> (7q34 tandem duplication); V600E is rare there and mostly seen in extracerebellar PA."},
+
+{lvl:"n",topic:"Stains",opts:["Luxol fast blue","Weil","Klüver–Barrera","Gallyas"],a:3,
+ link:"Myelin stains",
+ why:"LFB, Weil (iron hematoxylin) and Klüver–Barrera (LFB + cresyl violet) all show myelin. <b>Gallyas</b> silver is the stain of choice for 4R tau and argyrophilic grains, tufted astrocytes and coiled bodies. It is classically negative for Pick bodies."},
+
+{lvl:"n",topic:"Neurogenetics",opts:["Huntington disease","SCA1","Spinal and bulbar muscular atrophy (Kennedy)","Friedreich ataxia"],a:3,
+ link:"Coding CAG expansions (polyglutamine disease)",
+ why:"HD, SCA1 and SBMA are polyQ disorders with ubiquitin/p62+ intranuclear inclusions. <b>Friedreich ataxia</b> is an intronic <b>GAA</b> expansion in FXN with loss of frataxin. Its key lesions are dorsal root ganglion neuron loss, degeneration of the dorsal columns and spinocerebellar tracts, and grumose degeneration of the dentate nucleus. It has no polyQ inclusions."},
+
+{lvl:"n",topic:"Tumors",opts:["Pilocytic astrocytoma","Ganglioglioma","Pleomorphic xanthoastrocytoma","Glioblastoma, IDH-wildtype"],a:3,
+ link:"Eosinophilic granular bodies / Rosenthal fibers are a clue to a low-grade, circumscribed lesion",
+ why:"EGBs and Rosenthal fibers suggest a slowly growing, circumscribed glioma or glioneuronal tumor such as PA, ganglioglioma or PXA. They are characteristically <b>absent in glioblastoma</b>. Seeing them in a 'high-grade looking' lesion should make you think of PXA."},
+
+{lvl:"n",topic:"Sellar region",opts:["Wet keratin","Nuclear β-catenin accumulation","Stellate reticulum","BRAF p.V600E (VE1 immunostaining)"],a:3,
+ link:"Adamantinomatous craniopharyngioma",
+ why:"ACP has wet keratin, stellate reticulum, palisading, calcification and <b>CTNNB1</b> mutations with nuclear β-catenin in whorls and clusters. <b>BRAF V600E</b> defines <b>papillary</b> craniopharyngioma, which occurs in adults, is mostly suprasellar/third-ventricular, and lacks calcification and wet keratin."},
+
+{lvl:"n",topic:"Tumors",opts:["Dysembryoplastic neuroepithelial tumor","Central neurocytoma","Ganglioglioma","Oligodendroglioma, IDH-mutant, 1p/19q-codeleted"],a:3,
+ link:"Neuronal or mixed glioneuronal tumors",
+ why:"All four can show round, clear 'oligodendroglial-like' cells, but DNET, central neurocytoma and ganglioglioma are (glio)neuronal: they have floating neurons, diffuse synaptophysin/NeuN or dysplastic ganglion cells. <b>Oligodendroglioma</b> is a pure diffuse glioma. Remember that entrapped neurons and perineuronal satellitosis are not a neuronal component."},
+
+{lvl:"n",topic:"Malformations",opts:["Classic lissencephaly (LIS1/PAFAH1B1)","Miller–Dieker syndrome","Subcortical band heterotopia (DCX)","Cobblestone malformation (Walker–Warburg)"],a:3,
+ link:"Undermigration: neurons stop too early",
+ why:"Classic (type 1) lissencephaly, Miller–Dieker (a 17p13.3 deletion that includes LIS1) and DCX band heterotopia are failures of neuronal migration. <b>Cobblestone</b> malformation is <b>overmigration</b> through gaps in the pial–glial limiting membrane. It is seen in dystroglycanopathies such as WWS, MEB and Fukuyama CMD."},
+
+{lvl:"n",topic:"Muscle",opts:["MELAS","MERRF","Kearns–Sayre syndrome","Leigh syndrome due to SURF1 mutation"],a:3,
+ link:"Ragged-red fibers expected on the muscle biopsy",
+ why:"MELAS, MERRF and KSS (mtDNA disorders) typically show RRF and COX-deficient fibers. MELAS also shows SSVs and COX-positive RRF. <b>Leigh syndrome</b>, particularly nuclear <b>SURF1</b>-related COX deficiency, usually has <b>no RRF</b>. Instead there is a diffuse COX defect, and the brain shows symmetric spongy necrotizing lesions with capillary proliferation and relative neuronal sparing."},
+
+{lvl:"n",topic:"Infection · stains",opts:["Mucicarmine","Fontana–Masson","Grocott (GMS)","Ziehl–Neelsen"],a:3,
+ link:"Positive in Cryptococcus neoformans",
+ why:"The capsule is mucicarmine (and Alcian blue) positive, the wall is GMS positive, and the melanin precursor makes it <b>Fontana–Masson</b> positive, even in capsule-deficient forms. <b>Ziehl–Neelsen</b> stains acid-fast mycobacteria. Cryptococcus is not acid-fast."},
+
+{lvl:"n",topic:"Neurodegeneration",opts:["Thal phase","Braak NFT stage","CERAD neuritic plaque score","Braak Lewy body stage"],a:3,
+ link:"Components of the NIA-AA 'ABC' score for ADNC",
+ why:"A = Thal Aβ phase, B = Braak NFT stage, C = CERAD neuritic plaque density. The <b>Braak α-synuclein stage</b> stages Parkinson disease and is reported separately, for example with the Lewy pathology consensus criteria."},
+
+{lvl:"n",topic:"Meningioma",opts:["Secretory","Microcystic","Angiomatous","Chordoid"],a:3,
+ link:"CNS WHO grade 1 by subtype alone",
+ why:"Secretory (KLF4 K409Q + TRAF7, pseudopsammoma bodies, CEA+), microcystic and angiomatous meningiomas are grade 1 unless other criteria apply. Two subtypes are grade 2 by histotype alone: <b>Chordoid</b> and clear cell."},
+
+{lvl:"n",topic:"Syndromes",opts:["Bilateral vestibular schwannomas","Multiple meningiomas","Spinal ependymoma","Optic pathway glioma"],a:3,
+ link:"NF2 (now NF2-related schwannomatosis)",
+ why:"NF2 gives schwannomas, meningiomas, spinal (intramedullary) ependymomas, and also meningioangiomatosis and glial hamartias. <b>Optic pathway pilocytic astrocytoma</b> belongs to <b>NF1</b>."},
+
+{lvl:"n",topic:"Tumors · IHC",opts:["OCT4","PLAP","CD117 (KIT)","AFP"],a:3,
+ link:"Positive in germinoma",
+ why:"Germinoma: OCT4, PLAP, KIT (CD117), D2-40 and SALL4, in a two-cell pattern with lymphocytes and frequent granulomas. <b>AFP</b> marks yolk sac tumor (with glypican-3). Its serum/CSF elevation suggests a non-germinomatous component."},
+
+{lvl:"n",topic:"Vascular / herniation",opts:["Duret hemorrhage","Kernohan notch","Posterior cerebral artery territory infarct","Anterior cerebral artery territory infarct"],a:3,
+ link:"Consequences of transtentorial (uncal) herniation",
+ why:"Downward transtentorial herniation causes brainstem (Duret) hemorrhages, compression of the contralateral crus cerebri against the tentorium (Kernohan notch, false-localizing hemiparesis) and PCA compression. An <b>ACA infarct</b> is the complication of <b>subfalcine</b> (cingulate) herniation."},
+
+{lvl:"n",topic:"Hypoxia-ischemia",opts:["CA1 (Sommer sector) pyramidal neurons","Cerebellar Purkinje cells","Neocortical layers 3, 5 and 6","Dentate gyrus granule cells"],a:3,
+ link:"Selectively vulnerable to global hypoxia-ischemia",
+ why:"CA1, Purkinje cells and the middle/deep cortical laminae (laminar necrosis) are classically vulnerable. <b>Dentate granule cells</b>, together with CA2, are relatively <b>resistant</b>. CA4/hilus is variably involved."},
+
+{lvl:"n",topic:"Demyelination",opts:["Multiple sclerosis","MOG antibody–associated disease","ADEM","AQP4-IgG NMO spectrum disorder"],a:3,
+ link:"Primary demyelinating disorders that target myelin/oligodendrocytes",
+ why:"<b>NMOSD</b> is a primary <b>astrocytopathy</b>. Complement-mediated loss of AQP4 and GFAP comes first, and demyelination is secondary. MOGAD shows perivenous/confluent demyelination with preserved AQP4, and MS shows confluent plaques with relative axonal sparing."},
+
+{lvl:"n",topic:"Inclusions",opts:["Owl's-eye inclusion (CMV)","Cowdry type A inclusion (HSV)","Negri body (rabies)","Lafora body"],a:3,
+ link:"Viral inclusions",
+ why:"<b>Lafora bodies</b> are PAS-positive, diastase-resistant <b>polyglucosan</b> inclusions in neurons, sweat-gland ducts, liver and muscle. They are found in Lafora progressive myoclonus epilepsy (EPM2A/laforin, NHLRC1/malin)."},
+
+{lvl:"n",topic:"Inclusions",opts:["Lafora body","Corpora amylacea","Polyglucosan bodies of APBD (GBE1)","Hirano body"],a:3,
+ link:"Polyglucosan (PAS+) bodies",
+ why:"Lafora bodies, corpora amylacea and the bodies of adult polyglucosan body disease are all polyglucosan. The <b>Hirano body</b> is an eosinophilic, rod-shaped, paracrystalline <b>actin</b>-rich inclusion, typically in CA1 pyramidal neurons, and is PAS-negative."},
+
+{lvl:"n",topic:"Nerve sheath",opts:["Verocay bodies","Diffuse strong S100/SOX10","Thick hyalinized vessels","CD34 'fingerprint' pattern throughout"],a:3,
+ link:"Schwannoma",
+ why:"Schwannoma shows Antoni A/B areas, Verocay bodies, hyalinized vessels and diffuse S100/SOX10 with pericellular collagen IV. A diffuse <b>CD34 fingerprint</b> pattern with mixed S100+ and S100− cells and neurofilament+ axons favors <b>neurofibroma</b>."},
+
+{lvl:"n",topic:"Muscle",opts:["Fiber-type grouping","Small angulated fibers","Target fibers","Rimmed vacuoles"],a:3,
+ link:"Neurogenic (denervation) changes",
+ why:"Grouping, angular atrophic fibers (NSE/NADH dark) and target fibers indicate denervation and reinnervation. <b>Rimmed vacuoles</b> belong to myopathies such as sporadic IBM, GNE myopathy, myofibrillar myopathies and OPMD."},
+
+{lvl:"n",topic:"Muscle",opts:["Perifascicular atrophy","Sarcoplasmic MxA in perifascicular fibers","Endothelial tubuloreticular inclusions","Endomysial CD8+ T cells invading non-necrotic fibers"],a:3,
+ link:"Dermatomyositis",
+ why:"DM is a type I interferonopathy with perifascicular atrophy, MxA, TRIs on EM and capillary C5b-9. <b>CD8 cells invading non-necrotic, MHC-I+ fibers</b> is the lesion of IBM (and of rare true polymyositis)."},
+
+{lvl:"n",topic:"Vascular malformations",opts:["Capillary telangiectasia","Developmental venous anomaly","Arteriovenous malformation","Cavernous malformation"],a:3,
+ link:"Brain parenchyma between the abnormal vessels",
+ why:"Telangiectasia (normal neuropil between capillaries), DVA and AVM (gliotic, hemosiderin-laden parenchyma) all contain intervening brain tissue. A <b>cavernous malformation</b> is classically made of back-to-back sinusoidal channels with <b>no intervening parenchyma</b> (CCM1/2/3)."},
+
+{lvl:"n",topic:"Muscle · stains",opts:["Ragged-red fibers","Nemaline rods","Tubular aggregates","Central cores"],a:3,
+ link:"Visible on modified Gomori trichrome",
+ why:"RRF (red subsarcolemmal), nemaline rods (red-purple) and tubular aggregates (red) all show on GT. <b>Central cores</b> are basically invisible on GT. You see them on <b>NADH-TR/SDH/COX</b> as areas without oxidative activity (RYR1)."},
+
+{lvl:"n",topic:"Nerve",opts:["Vasculitic neuropathy","Diabetic sensorimotor polyneuropathy","Critical illness polyneuropathy","CMT1A"],a:3,
+ link:"Primarily axonal",
+ why:"Vasculitic (multifocal fascicular axonal loss), diabetic distal symmetric and critical illness neuropathy are all axonal. <b>CMT1A</b> (PMP22 duplication) is a <b>demyelinating</b> neuropathy with hypomyelination and onion bulbs."},
+
+{lvl:"n",topic:"Prion",opts:["Kuru plaques","Florid plaques","GSS multicentric plaques","Neuritic plaques"],a:3,
+ link:"PrP amyloid plaques",
+ why:"Kuru plaques (sCJD MV2K and kuru), florid plaques ringed by spongiosis (vCJD) and multicentric plaques (GSS) are PrP. <b>Neuritic plaques</b> are <b>Aβ</b> cores with tau-positive dystrophic neurites (AD)."},
+
+{lvl:"n",topic:"Pituitary",opts:["Somatotroph tumor","Lactotroph tumor","Thyrotroph tumor","Corticotroph tumor"],a:3,
+ link:"PIT1 lineage",
+ why:"Somatotroph, lactotroph, thyrotroph (and mammosomatotroph and plurihormonal PIT1) tumors share the <b>PIT1</b> transcription factor. <b>Corticotroph</b> tumors are <b>TPIT</b>-lineage, and gonadotroph tumors are SF1."},
+
+{lvl:"n",topic:"Malformations",opts:["Lumbosacral myelomeningocele","Beaked tectum","Small posterior fossa with low tentorium","Dandy–Walker cyst"],a:3,
+ link:"Chiari II malformation",
+ why:"Chiari II combines myelomeningocele, a small posterior fossa, vermian and brainstem herniation, tectal beaking, medullary kinking and hydrocephalus. <b>Dandy–Walker</b> is the opposite situation: an <b>enlarged</b> posterior fossa with cystic 4th ventricle, vermian hypoplasia and a high tentorium."},
+
+/* ---------- images (normal) ---------- */
+{lvl:"n",topic:"Muscle · images",img:true,opts:[{img:"Duchenne-muscular-dystrophy.jpg",cap:"H&E"},{img:"Dermatomyositis - intermed mag.jpg",cap:"H&E"},{img:"Congenital nemaline myopathy.jpg",cap:"Gomori trichrome"},{img:"Denervation atrophy - atp94 - intermed mag.jpg",cap:"ATPase pH 9.4"}],a:3,
+ link:"Myopathic pattern",
+ why:"1) Duchenne dystrophy with end-stage fibro-fatty replacement. 2) Dermatomyositis with perifascicular atrophy. 3) Congenital nemaline myopathy with numerous rods. 4) <b>Denervation</b>: ATPase shows groups of small, angulated atrophic fibers (type 2 here) side by side with normal ones, a <b>neurogenic</b> pattern."},
+
+{lvl:"n",topic:"Infection · images",img:true,opts:[{img:"Cerebral taenia solium infection.jpg",cap:"H&E"},{img:"Cerebral schistosomiasis.jpg",cap:"H&E"},{img:"Cerebral Toxoplasmosis bradyzoites.jpg",cap:"H&E"},{img:"HSV HE 20x.jpg",cap:"H&E"}],a:3,
+ link:"Parasitic CNS infections",
+ why:"1) Neurocysticercosis (<i>Taenia solium</i> cyst with scolex). 2) Schistosomal egg granuloma (<i>S. mansoni</i>). 3) Toxoplasma bradyzoite cyst with mixed inflammation. 4) <b>HSV encephalitis</b>: a necrotizing hemorrhagic meningoencephalitis with dense perivascular lymphocytes. It is viral and classically fronto-temporal/limbic."},
+
+{lvl:"n",topic:"Tumors · images",img:true,opts:[{img:"Pineoblastoma HE x200.jpg",cap:"H&E"},{img:"Medulloblastoma HE x200.jpg",cap:"smear, H&E"},{img:"ATRT-HE-Overview.jpg",cap:"H&E"},{img:"Primary CNS lymphoma - high mag.jpg",cap:"H&E"}],a:3,
+ link:"CNS embryonal tumors",
+ why:"Pineoblastoma, medulloblastoma (nuclear molding on smear) and AT/RT are embryonal neuroepithelial tumors of childhood. <b>Primary CNS lymphoma</b> (DLBCL, typically ABC type, MYD88/CD79B) is the 'small round blue cell' impostor of adults. Its angiocentric growth is a clue, and avoid steroids before biopsy."},
+
+{lvl:"n",topic:"Tumors · images",img:true,opts:[{img:"Neuroblastoma Homer Wright rosettes HE.jpg",cap:"H&E"},{img:"Retinoblastoma rosette.jpg",cap:"H&E"},{img:"Ependymoblastomatous Rosette.jpg",cap:"H&E"},{img:"Ependymoma pseudorosette.jpg",cap:"H&E"}],a:3,
+ link:"True rosettes (no central vessel)",
+ why:"1) Homer Wright rosettes (neuropil center). 2) Flexner–Wintersteiner rosettes (central lumen, retinoblastoma). 3) Multilayered ependymoblastic rosettes of ETMR. 4) A <b>perivascular pseudorosette</b> of ependymoma: anucleate GFAP+ fibrillary processes radiating to a <b>vessel</b>."},
+
+{lvl:"n",topic:"Vascular · images",img:true,opts:[{img:"Cavernom.jpg",cap:"Elastica van Gieson"},{img:"Teleangiectasia brain.jpg",cap:"H&E"},{img:"AVM1 HE.jpg",cap:"H&E"},{img:"CAA hemorrhage HE.jpg",cap:"H&E"}],a:3,
+ link:"Vascular malformations",
+ why:"Cavernous malformation (thrombosed back-to-back sinusoids), capillary telangiectasia and AVM are malformations. <b>Image 4 is cerebral amyloid angiopathy</b>: hyalinized, thickened Aβ-laden cortical/leptomeningeal vessels causing lobar hemorrhage. It is degenerative, not malformative."},
+
+{lvl:"n",topic:"Muscle · images",img:true,opts:[{img:"Ragged red fibres - gtc - very high mag.jpg",cap:"Gomori trichrome"},{img:"Cox-deficient fibers in mitochondrial myopathy.jpg",cap:"COX/SDH"},{img:"Mitochondrial myopathy crystalline inclusions.jpg",cap:"EM"},{img:"Pompe vacuoles.jpg",cap:"H&E, frozen"}],a:3,
+ link:"Mitochondrial myopathy",
+ why:"1) Ragged-red fiber. 2) COX-deficient (blue) fibers on sequential COX/SDH. 3) Paracrystalline 'parking-lot' inclusions in mitochondria. 4) <b>Pompe disease</b> (acid maltase/GAA deficiency): a vacuolar myopathy with PAS+, acid-phosphatase-positive lysosomal glycogen."}
+);
+
+// HARD — 33 questions
+Q.push(
+{lvl:"h",topic:"Tauopathies",opts:["Argyrophilic grain disease","Globular glial tauopathy","Aging-related tau astrogliopathy (ARTAG)","Chronic traumatic encephalopathy"],a:3,
+ link:"Pure 4-repeat tauopathies",
+ why:"AGD (grains in the ambient gyrus and medial temporal lobe), GGT (globular oligodendroglial and astroglial inclusions) and ARTAG (thorn-shaped and granular/fuzzy astrocytes) are 4R. <b>CTE</b> is a <b>mixed 3R+4R</b> tauopathy: its neuronal tangles are biochemically AD-like, even though its astrocytic tau is mostly 4R. The defining lesion is perivascular p-tau in neurons (± astrocytes) at the depths of sulci."},
+
+{lvl:"h",topic:"Prion",opts:["sCJD MM1","Kuru","Gerstmann–Sträussler–Scheinker (P102L)","Fatal familial insomnia"],a:3,
+ link:"Spongiform change is a prominent feature",
+ why:"<b>FFI</b> (PRNP D178N on a 129M allele) is the 'non-spongiform' prion disease. It shows severe neuronal loss and gliosis of the <b>anteroventral and mediodorsal thalamus</b> and inferior olives, with little or no spongiosis except in long-duration cases. PrPSc is low and type 2."},
+
+{lvl:"h",topic:"Embryonal tumors",opts:["Atypical teratoid/rhabdoid tumor","Epithelioid sarcoma","Cribriform neuroepithelial tumor (CRINET)","Embryonal tumor with multilayered rosettes"],a:3,
+ link:"Loss of nuclear SMARCB1 (INI1)",
+ why:"AT/RT, epithelioid sarcoma and CRINET (closely related to AT/RT-TYR) lose INI1. <b>ETMR</b> retains INI1 and is defined by <b>C19MC amplification</b> (19q13.42) or DICER1 alteration, with strong LIN28A."},
+
+{lvl:"h",topic:"Lymphoma",opts:["MYD88 p.L265P","CD79B mutation","Angiocentric growth with reticulin 'onion skinning'","t(14;18)(q32;q21) IGH::BCL2"],a:3,
+ link:"Typical of primary CNS DLBCL",
+ why:"PCNSL is an ABC-type, immune-privileged-site DLBCL: MYD88 L265P in about 70–80%, CD79B, CDKN2A loss and perivascular cuffing. <b>t(14;18)</b> is a GCB/follicular hallmark and is rare in PCNSL. Note that BCL2 <i>protein</i> is often expressed anyway."},
+
+{lvl:"h",topic:"Gliomas",opts:["Astrocytoma, IDH-mutant","Diffuse hemispheric glioma, H3 G34-mutant","High-grade astrocytoma with piloid features","Pleomorphic xanthoastrocytoma"],a:3,
+ link:"Loss of nuclear ATRX is frequent (ALT phenotype)",
+ why:"ATRX loss is near-universal in IDH-mutant astrocytoma and G34-mutant DHG, and present in about half of HGAP (with MAPK alteration + CDKN2A/B deletion and a distinct methylation class). <b>PXA</b> usually retains ATRX and relies on BRAF V600E + CDKN2A/B deletion, with TERTp alterations in some cases."},
+
+{lvl:"h",topic:"Ependymoma",opts:["L1CAM overexpression","Nuclear p65 (RELA)","CDKN2A/B homozygous deletion as a poor prognostic marker","EZHIP overexpression"],a:3,
+ link:"Supratentorial ZFTA fusion–positive ependymoma",
+ why:"ZFTA::RELA ependymomas show L1CAM, nuclear p65 and NF-κB pathway activation, and CDKN2A/B loss carries a worse prognosis. <b>EZHIP</b> overexpression with H3K27me3 loss defines <b>posterior fossa group A (PFA)</b> ependymoma, typically of infants. 1q gain is its key adverse marker."},
+
+{lvl:"h",topic:"Synucleinopathy",opts:["Dorsal motor nucleus of the vagus","Locus coeruleus","Substantia nigra pars compacta","Dentate nucleus of the cerebellum"],a:3,
+ link:"Sites in the Braak PD staging scheme",
+ why:"Braak stage 1 is the DMV/IX–X (and olfactory bulb), stage 2 adds the LC and raphe, and stage 3 the SN, amygdala and basal forebrain. The <b>cerebellar dentate</b> is not part of the scheme. It is a classic site for PSP tau (grumose degeneration) and for MSA olivopontocerebellar involvement."},
+
+{lvl:"h",topic:"Synucleinopathy",opts:["Papp–Lantos bodies (oligodendroglial cytoplasmic)","Neuronal cytoplasmic inclusions in pontine nuclei","Intranuclear inclusions in oligodendrocytes and neurons","Marinesco bodies"],a:3,
+ link:"α-synuclein lesions of MSA",
+ why:"MSA has GCIs, neuronal cytoplasmic and nuclear inclusions and glial nuclear inclusions, all α-synuclein. <b>Marinesco bodies</b> are small eosinophilic, <b>ubiquitin/p62+, synuclein-negative</b> intranuclear bodies in pigmented nigral neurons that increase with age. They are a classic distractor."},
+
+{lvl:"h",topic:"Small vessel disease",opts:["Granular osmiophilic material in vascular smooth muscle basement membranes","Accumulation of NOTCH3 extracellular domain on IHC","Diagnosis feasible on skin biopsy","Autosomal recessive inheritance with alopecia and spondylosis"],a:3,
+ link:"CADASIL",
+ why:"CADASIL (NOTCH3, autosomal dominant) shows GOM on EM, NOTCH3-ECD deposits and loss of vascular smooth muscle cells, and skin biopsy is diagnostic. <b>Recessive inheritance + early alopecia + spondylosis</b> is <b>CARASIL</b> (HTRA1), which has no GOM."},
+
+{lvl:"h",topic:"Gliomas · grading",opts:["Necrosis","Microvascular proliferation","CDKN2A/B homozygous deletion","EGFR amplification"],a:3,
+ link:"Each one alone makes an IDH-mutant astrocytoma CNS WHO grade 4",
+ why:"CNS5 grades IDH-mutant astrocytoma 4 for necrosis, MVP or <b>CDKN2A/B homozygous deletion</b>. <b>EGFR amplification</b> is one of the molecular criteria for <b>glioblastoma, IDH-wildtype</b>, together with TERTp mutation and +7/−10."},
+
+{lvl:"h",topic:"Gliomas · grading",opts:["TERT promoter mutation","EGFR amplification","Combined +7/−10","CDKN2A/B homozygous deletion"],a:3,
+ link:"Each one alone upgrades a histologically low-grade adult IDH-wt diffuse astrocytic glioma to glioblastoma",
+ why:"CNS5 'molecular GBM' needs TERTp mutation, EGFR amplification or +7/−10. <b>CDKN2A/B deletion</b> is very common in GBM, but it is not one of the three criteria. It is the grade 4 marker in IDH-mutant astrocytoma (and the grade 3 marker in meningioma)."},
+
+{lvl:"h",topic:"Muscle",opts:["Anti-HMGCR antibodies","Anti-SRP antibodies","Sarcolemmal C5b-9 on non-necrotic fibers","Prominent endomysial lymphocytic inflammation"],a:3,
+ link:"Immune-mediated necrotizing myopathy",
+ why:"IMNM shows scattered necrotic and regenerating fibers, myophagocytosis by macrophages, diffuse MHC-I and sarcolemmal MAC, with HMGCR (statins) or SRP antibodies. <b>Inflammation is characteristically scant</b>. Prominent T-cell infiltrates point elsewhere, for example to IBM or ASS."},
+
+{lvl:"h",topic:"Muscle",opts:["Rimmed vacuoles","p62/TDP-43 sarcoplasmic aggregates","Excess COX-deficient fibers for age","Anti-Mi-2 antibodies"],a:3,
+ link:"Inclusion body myositis",
+ why:"Sporadic IBM shows rimmed vacuoles, p62/TDP-43/LC3 aggregates, COX-deficient fibers, endomysial CD8 invasion and anti-cN1A (NT5C1A). <b>Anti-Mi-2</b> marks classic <b>dermatomyositis</b>."},
+
+{lvl:"h",topic:"Tumors · IHC",opts:["Inhibin-α","S100","D2-40 (podoplanin)","EMA"],a:3,
+ link:"Positive in stromal cells of hemangioblastoma",
+ why:"Hemangioblastoma stromal cells are inhibin+, S100+, NSE+, D2-40+ (and brachyury+). The key differential in a VHL patient is metastatic clear cell RCC, which is <b>EMA+</b>, PAX8+ and CD10+, with inhibin and D2-40 negative."},
+
+{lvl:"h",topic:"Prion",opts:["Florid plaques","PrPSc in tonsil/appendix lymphoid tissue","Pulvinar sign on MRI","CSF 14-3-3 positive in the large majority of cases"],a:3,
+ link:"Variant CJD",
+ why:"vCJD shows florid plaques, lymphoreticular PrPSc (tonsil biopsy), the pulvinar sign, younger patients, psychiatric onset and codon 129 MM. <b>CSF 14-3-3</b> is positive in only about half of vCJD. A high positivity rate (and RT-QuIC) is the sCJD picture."},
+
+{lvl:"h",topic:"Leukodystrophies",opts:["Krabbe disease","Metachromatic leukodystrophy","Multiple sulfatase deficiency","X-linked adrenoleukodystrophy"],a:3,
+ link:"Lysosomal storage disorders",
+ why:"Krabbe (GALC, globoid cells), MLD (ARSA, metachromatic sulfatide that stains brown with cresyl violet) and MSD (SUMF1) are lysosomal. <b>X-ALD</b> (ABCD1) is <b>peroxisomal</b>, with VLCFA accumulation, inflammatory perivascular demyelination and lamellar 'trilaminar' inclusions in macrophages and adrenal cortex."},
+
+{lvl:"h",topic:"Tumors · IHC",opts:["Polymorphous low-grade neuroepithelial tumor of the young","Ganglioglioma","Pleomorphic xanthoastrocytoma","Oligodendroglioma, IDH-mutant, 1p/19q-codeleted"],a:3,
+ link:"Tumor cells frequently CD34-positive",
+ why:"Strong CD34 (ramified cells) is nearly the rule in PLNTY and common in ganglioglioma and PXA. CD34 in surrounding cortex hints at a developmental/epileptogenic lesion. <b>Oligodendroglioma</b> cells are CD34-negative; only the vessels stain."},
+
+{lvl:"h",topic:"Syndromes",opts:["Medulloblastoma with extensive nodularity","Odontogenic keratocyst","Basal cell carcinoma","Choroid plexus carcinoma"],a:3,
+ link:"Gorlin syndrome (PTCH1/SUFU)",
+ why:"Naevoid basal cell carcinoma syndrome gives SHH-activated desmoplastic/nodular MB and MBEN (especially SUFU in infants), jaw keratocysts and BCCs, so avoid radiotherapy. <b>Choroid plexus carcinoma</b> points to <b>Li–Fraumeni</b> (germline TP53)."},
+
+{lvl:"h",topic:"Epilepsy",opts:["CA1 + CA4 neuronal loss","CA1-predominant loss","CA4-predominant loss","CA2-predominant loss"],a:3,
+ link:"ILAE hippocampal sclerosis types",
+ why:"ILAE HS type 1 = CA1 + CA4 (classic, most common), type 2 = CA1-predominant, type 3 = CA4-predominant (end folium). 'No-HS/gliosis only' also exists. <b>There is no CA2 type</b>. CA2 is typically the resistant sector."},
+
+{lvl:"h",topic:"Epilepsy",opts:["Dysmorphic neurons","Balloon cells","Diffuse phospho-S6 activation","Abnormal radial lamination without dysmorphic neurons"],a:3,
+ link:"Focal cortical dysplasia ILAE type II",
+ why:"FCD IIa has dysmorphic neurons, IIb adds balloon cells, and both are mTORopathies (MTOR, DEPDC5, TSC1/2…) with pS6. <b>Abnormal radial/tangential lamination alone</b> is <b>FCD type I</b>."},
+
+{lvl:"h",topic:"Motor neuron disease",opts:["Bunina bodies","Skein-like TDP-43 inclusions in lower motor neurons","Pallor of the lateral corticospinal tracts","Severe neuronal loss in Onuf's nucleus"],a:3,
+ link:"Typical of ALS",
+ why:"Bunina bodies (cystatin C), skeins and compact TDP-43 inclusions, and corticospinal tract degeneration define sporadic ALS. <b>Onuf's nucleus</b> (S2, sphincters) and the <b>oculomotor nuclei</b> are classically <b>spared</b>."},
+
+{lvl:"h",topic:"Spinal cord",opts:["Vitamin B12 deficiency","Copper deficiency","Nitrous oxide abuse","Tabes dorsalis"],a:3,
+ link:"Subacute combined degeneration pattern (dorsal + lateral columns, vacuolar myelin)",
+ why:"B12 deficiency, copper deficiency and N2O (which inactivates cobalamin) give vacuolar myelopathy of the posterior and lateral columns. HIV vacuolar myelopathy looks the same. <b>Tabes dorsalis</b> (neurosyphilis) damages the dorsal roots and dorsal columns only, without lateral involvement or intramyelinic vacuolation."},
+
+{lvl:"h",topic:"Pituitary",opts:["Crooke cell tumor","Silent corticotroph tumor","Sparsely granulated corticotroph tumor","Sparsely granulated somatotroph tumor"],a:3,
+ link:"TPIT lineage",
+ why:"All three corticotroph tumors are TPIT+ (Crooke cells show ring-like keratin hyalinization). The <b>SG somatotroph</b> tumor is <b>PIT1</b>-lineage, with CAM5.2 dot-like 'fibrous bodies' and frequent somatostatin-analog resistance."},
+
+{lvl:"h",topic:"Molecular",opts:["Meningioma (as a marker of CNS WHO grade 3)","Oligodendroglioma, IDH-mutant, 1p/19q-codeleted","Glioblastoma, IDH-wildtype","Astrocytoma, IDH-mutant"],a:3,
+ link:"TERT promoter mutations are characteristic",
+ why:"TERTp mutation makes a meningioma grade 3, is nearly constant in oligodendroglioma, and is a GBM-defining criterion. <b>IDH-mutant astrocytoma</b> keeps its telomeres through <b>ATRX loss / ALT</b>, and TERTp and ATRX alterations are mutually exclusive."},
+
+{lvl:"h",topic:"Tauopathies",opts:["Tufted astrocytes in motor cortex and striatum","Globose tangles in the subthalamic nucleus","Midbrain atrophy ('hummingbird' sign)","Ballooned achromatic neurons in frontoparietal cortex"],a:3,
+ link:"Progressive supranuclear palsy",
+ why:"PSP: tufted astrocytes, globose NFTs in the STN, SN and dentate, and midbrain tegmental atrophy. <b>Ballooned neurons in superior frontal/parietal cortex</b> together with <b>astrocytic plaques</b> point to <b>corticobasal degeneration</b>."},
+
+{lvl:"h",topic:"Syndromes",opts:["Dysplastic cerebellar gangliocytoma (Lhermitte–Duclos)","Breast carcinoma","Follicular thyroid carcinoma","Subependymal giant cell astrocytoma"],a:3,
+ link:"PTEN hamartoma tumor syndrome (Cowden)",
+ why:"Adult Lhermitte–Duclos is essentially pathognomonic for Cowden, which also carries breast, follicular thyroid and endometrial cancer risk. <b>SEGA</b> belongs to <b>tuberous sclerosis</b> (TSC1/TSC2), although both diseases converge on mTOR."},
+
+/* ---------- images (hard) ---------- */
+{lvl:"h",topic:"Infection · images",img:true,opts:[{img:"Aspergillosis cerebral grocott.jpg",cap:"Grocott"},{img:"Dpk-meningitis-fungus-in-brain.jpg",cap:"Grocott"},{img:"Cryptococcosis - GMS stain (5280754344).jpg",cap:"Grocott"},{img:"Actinomycetes CNS grocott.jpg",cap:"Grocott"}],a:3,
+ link:"Fungi",
+ why:"1) Aspergillus: septate hyphae with acute-angle branching. 2) Angioinvasive hyphae in a vessel wall. 3) Cryptococcus: narrow-based budding yeasts of variable size. 4) <b>Actinomyces</b>: a dense 'sulfur granule' colony of thin branching filaments, GMS+ and Gram+. It is a <b>bacterium</b>, not a fungus, so treat with penicillin rather than antifungals."},
+
+{lvl:"h",topic:"Neurodegeneration · images",img:true,opts:[{img:"PSP tau globose tangles threads mesencephalon.jpg",cap:"IHC"},{img:"AGD gallays.jpg",cap:"Gallyas"},{img:"Alzheimer neuritic plaque gallyas stain.jpg",cap:"Gallyas"},{img:"Lewy neurites alpha synuclein.jpg",cap:"IHC"}],a:3,
+ link:"Tau pathology",
+ why:"1) PSP midbrain: globose tangles and threads (tau IHC). 2) Argyrophilic grains, the spindle/comma-shaped 4R dendritic lesions. 3) Neuritic plaque with tau+ dystrophic neurites. 4) <b>Lewy neurites</b> (thick, tortuous) and Lewy bodies: <b>α-synuclein</b> IHC in DLB."},
+
+{lvl:"h",topic:"Meningioma · images",img:true,opts:[{img:"Secretory meningioma HE x200.jpg",cap:"H&E"},{img:"Angiomatous meningioma HE x100.jpg",cap:"H&E"},{img:"Microcystic meningeoma HE x100.jpg",cap:"H&E"},{img:"Chordoid meningoma HE x200.jpg",cap:"H&E"}],a:3,
+ link:"CNS WHO grade 1 subtypes",
+ why:"1) Secretory, with eosinophilic pseudopsammoma bodies. 2) Angiomatous, with hyalinized vessels. 3) Microcystic. All three are grade 1. 4) <b>Chordoid</b> meningioma, with cords of eosinophilic cells in a mucoid matrix, is <b>grade 2</b> by subtype. It recurs more often and can mimic chordoma and chordoid glioma."},
+
+{lvl:"h",topic:"Spindle cells · images",img:true,opts:[{img:"Antoni A area of schwannoma with Verocay bodies.png",cap:"H&E"},{img:"Perineurioma HE.jpg",cap:"H&E"},{img:"Nerve root schwannoma - intermed mag.jpg",cap:"H&E"},{img:"Meningioma fibromatous variant.jpg",cap:"H&E"}],a:3,
+ link:"Peripheral nerve sheath tumors",
+ why:"1) Schwannoma, Antoni A with Verocay bodies. 2) Perineurioma, with whorls and pseudo-onion bulbs (EMA+, claudin-1+, GLUT1+). 3) Nerve root schwannoma. 4) <b>Fibrous meningioma</b>: fascicles of spindle cells with a <b>psammoma body</b> and a whorl. It is SSTR2A/EMA+ and typically NF2/22q-altered."},
+
+{lvl:"h",topic:"Neurodegeneration · images",img:true,opts:[{img:"Hirano body, HE 1.JPG",cap:"H&E"},{img:"Granulovacuolar degeneration.JPG",cap:"H&E"},{img:"Histopathology of neurofibrillary tangles in Alzheimer's disease.jpg",cap:"H&E"},{img:"Lewy body in the substantia nigra from a person with Parkinson's disease.jpg",cap:"H&E"}],a:3,
+ link:"Hippocampal pyramidal neuron changes of aging/AD",
+ why:"1) Hirano body (actin, CA1). 2) Granulovacuolar degeneration (CK1δ+ vacuoles with dense granules). 3) Flame-shaped neurofibrillary tangles. 4) <b>Lewy body</b>: a classic brainstem LB with a concentric eosinophilic core and pale halo in a <b>pigmented nigral neuron</b> (note the neuromelanin)."},
+
+{lvl:"h",topic:"Tumors · images",img:true,opts:[{img:"Neurocytoma clear cell appearance.jpg",cap:"H&E"},{img:"Clear cell ependymoma HE.jpg",cap:"H&E"},{img:"DNT HE stain.jpg",cap:"H&E"},{img:"HE clear cell meningioma.jpg",cap:"H&E"}],a:3,
+ link:"Neuroepithelial tumors with clear, 'oligodendroglioma-like' cells",
+ why:"1) Central neurocytoma (synaptophysin+). 2) Clear cell ependymoma (EMA dots, GFAP+). 3) DNET, with OLIG2+ oligodendrocyte-like cells and floating neurons in mucoid matrix. 4) <b>Clear cell meningioma</b>: sheets of glycogen-rich (PAS+) clear cells with blocky interstitial collagen. It is <b>meningothelial</b>, SMARCE1-mutant and grade 2."},
+
+{lvl:"h",topic:"Prion · images",img:true,opts:[{img:"CJD Cortical spongiosis.jpg",cap:"H&E"},{img:"CJD kuru plaque MV2 variant.jpg",cap:"H&E"},{img:"Variant Creutzfeldt-Jakob disease (vCJD), typical amyloid plaques, H&E.jpg",cap:"H&E"},{img:"Histopathology of cerebral vascular edema.jpg",cap:"H&E"}],a:3,
+ link:"Prion disease",
+ why:"1) sCJD cortical spongiform change (small round vacuoles in neuropil). 2) Kuru plaque in the cerebellar granular layer (sCJD MV2K). 3) vCJD florid plaques. 4) <b>Perivascular edema</b> (rarefied tissue around a basal ganglia vessel): a <b>non-prion</b> mimic of spongiosis, like artefactual vacuolation."}
+);
+
+// TRYME… — 33 questions
+Q.push(
+{lvl:"t",topic:"FTLD",opts:["Lentiform neuronal intranuclear inclusions","'Cat's-eye' neuronal intranuclear inclusions","Long, thick dystrophic neurites in superficial cortex","p62-positive star-shaped inclusions in cerebellar granule cells"],a:3,
+ link:"TDP-43-positive lesions",
+ why:"Lentiform NIIs = FTLD-TDP type D (VCP). Cat's-eye NIIs = type A, typically GRN. Long DNs = type C (semantic variant PPA). The <b>p62+ cerebellar granule cell inclusions of C9orf72</b> are made of <b>dipeptide-repeat proteins</b> (RAN translation) and are <b>TDP-43-negative</b>."},
+
+{lvl:"t",topic:"Glioneuronal",opts:["Dysembryoplastic neuroepithelial tumor","Rosette-forming glioneuronal tumor","Extraventricular neurocytoma","Myxoid glioneuronal tumor"],a:3,
+ link:"FGFR1 alterations are the main driver",
+ why:"DNET (FGFR1 TKD duplication, fusions and mutations), RGNT (FGFR1 hotspots, often with PIK3CA ± NF1) and EVN (frequent <i>FGFR1::TACC1</i>) are FGFR1 tumors. <b>Myxoid glioneuronal tumor</b> of the septum pellucidum and periventricular white matter carries <b>PDGFRA p.K385L/I</b>."},
+
+{lvl:"t",topic:"Tauopathies",opts:["Tufted astrocytes","Astrocytic plaques","Globular astroglial inclusions","Ramified astrocytes"],a:3,
+ link:"4R-tau astroglial lesions",
+ why:"Tufted astrocytes (PSP), astrocytic plaques (CBD) and globular astroglial inclusions (GGT) are 4R. <b>Ramified astrocytes</b> belong to <b>Pick disease</b> and, like Pick bodies, are predominantly <b>3R</b>."},
+
+{lvl:"t",topic:"Epigenetics",opts:["Diffuse midline glioma, H3 K27-altered (EZHIP-overexpressing)","Posterior fossa ependymoma, group PFA","Sporadic high-grade MPNST","Diffuse hemispheric glioma, H3 G34-mutant"],a:3,
+ link:"Global loss of H3 K27me3 on immunohistochemistry",
+ why:"PRC2 inhibition through K27M or its mimic EZHIP (DMG, PFA), or PRC2 inactivation through SUZ12/EED (MPNST), removes K27me3. <b>H3 G34R/V</b> acts in cis on <b>H3K36</b> methylation and <b>retains K27me3</b>. Use G34R/V antibodies, ATRX loss, p53 and OLIG2 negativity instead."},
+
+{lvl:"t",topic:"Pineal",opts:["DICER1","DROSHA","MYC/FOXR2 activation","KBTBD4 small in-frame insertion"],a:3,
+ link:"Alterations defining molecular groups of pineoblastoma",
+ why:"Pineoblastoma groups: miRNA-processing altered 1 and 2 (DICER1, DROSHA, DGCR8), MYC/FOXR2-activated, and RB1-altered (pineal 'trilateral' retinoblastoma). <b>KBTBD4</b> insertions are the hallmark of <b>pineal parenchymal tumor of intermediate differentiation</b> (PPTID)."},
+
+{lvl:"t",topic:"Grading",opts:["Myxopapillary ependymoma","Central neurocytoma","Chordoid meningioma","Subependymoma"],a:3,
+ link:"CNS WHO grade 2",
+ why:"Since CNS5, <b>myxopapillary ependymoma is grade 2</b>, because of its recurrence and dissemination risk. Central neurocytoma and chordoid meningioma are grade 2 as well. <b>Subependymoma</b> is grade 1."},
+
+{lvl:"t",topic:"Classification",opts:["Diffuse astrocytoma, MYB- or MYBL1-altered","Angiocentric glioma","Polymorphous low-grade neuroepithelial tumor of the young","Chordoid glioma"],a:3,
+ link:"CNS5 family: pediatric-type diffuse low-grade gliomas",
+ why:"This family has four members: MYB/MYBL1-altered DA, angiocentric glioma (MYB::QKI), PLNTY (BRAF V600E or FGFR2/3 fusions, CD34+) and diffuse LGG MAPK-altered. <b>Chordoid glioma</b> of the third ventricle (PRKCA p.D463H, TTF1+) is a <b>circumscribed</b> astrocytic glioma, grade 2."},
+
+{lvl:"t",topic:"Congenital myopathies",opts:["NEB","KLHL40","KBTBD13","SELENON (SEPN1)"],a:3,
+ link:"Nemaline myopathy genes",
+ why:"NEB (most common, recessive), KLHL40 (severe neonatal), KBTBD13 (dominant, rods + cores, 'slowness') along with ACTA1, TPM2/3, TNNT1, CFL2, LMOD3… <b>SELENON</b> causes multiminicore disease, rigid spine muscular dystrophy and congenital fiber-type disproportion, not rods."},
+
+{lvl:"t",topic:"Myopathies",opts:["DES","FLNC","BAG3","CAV3"],a:3,
+ link:"Myofibrillar myopathy genes",
+ why:"MFM (desmin, filamin C, BAG3, also CRYAB, MYOT, LDB3/ZASP, FHL1, DNAJB6) shows Z-disc streaming, rubbed-out areas and ectopic desmin/myotilin aggregates. <b>CAV3</b> gives the caveolinopathies: rippling muscle disease, distal myopathy, hyperCKemia (formerly LGMD1C), with reduced sarcolemmal caveolin-3."},
+
+{lvl:"t",topic:"Muscular dystrophies",opts:["FKRP","FKTN","POMT1","LAMA2"],a:3,
+ link:"Dystroglycanopathies (defective α-dystroglycan glycosylation)",
+ why:"FKRP, fukutin and POMT1 glycosylate α-DG. The IIH6 glyco-epitope is lost and cobblestone brain is possible. <b>LAMA2</b> encodes laminin-α2 (merosin), the α-DG ligand, so it causes merosin-deficient CMD (LAMA2-RD) with white matter T2 changes but normal glycosylation."},
+
+{lvl:"t",topic:"Inflammatory myopathies",opts:["Perifascicular necrosis","Perifascicular sarcolemmal MHC class II","Intranuclear actin filament inclusions on EM","Perifascicular sarcoplasmic MxA"],a:3,
+ link:"Anti-synthetase syndrome myositis",
+ why:"ASS (Jo-1, PL-7, PL-12…) shows perifascicular <i>necrosis</i>, MHC-II and nuclear actin aggregates. <b>MxA</b>, a type I interferon marker, is sensitive and specific for <b>dermatomyositis</b> and is typically absent in ASS, which is the best tie-breaker for perifascicular pathology."},
+
+{lvl:"t",topic:"Neurodegeneration",opts:["Amygdala","Hippocampus","Middle frontal gyrus","Primary motor cortex"],a:3,
+ link:"Regions used for LATE-NC staging",
+ why:"LATE-NC stage 1 = amygdala, stage 2 adds the hippocampus, stage 3 adds the middle frontal gyrus. <b>Motor cortex</b> TDP-43 pathology is not part of LATE staging. It points to ALS/FTLD-MND."},
+
+{lvl:"t",topic:"Synucleinopathy",opts:["Amygdala-predominant","Olfactory bulb only","Brainstem-predominant","Pallido-nigro-luysian"],a:3,
+ link:"Lewy pathology consensus categories",
+ why:"Lewy pathology is categorised as olfactory bulb only, amygdala-predominant, brainstem, limbic (transitional) and neocortical (diffuse). <b>Pallido-nigro-luysian atrophy</b> is a <b>4R tauopathy</b> in the PSP spectrum (PSP-PGF)."},
+
+{lvl:"t",topic:"Grading",opts:["Astrocytoma, IDH-mutant","Meningioma","Oligodendroglioma, IDH-mutant, 1p/19q-codeleted","Pleomorphic xanthoastrocytoma"],a:3,
+ link:"CDKN2A/B homozygous deletion counts as a grading criterion",
+ why:"CDKN2A/B HD → grade 4 IDH-mutant astrocytoma and grade 3 meningioma, and it is a marker of grade 3 oligodendroglioma (adverse). In <b>PXA</b> it is present in the majority of cases, so it <b>does not upgrade</b>. Grade 3 PXA is defined by ≥2.5 mitoses/mm²."},
+
+{lvl:"t",topic:"Meningioma",opts:["Secretory — KLF4 K409Q + TRAF7","Clear cell — SMARCE1","Angiomatous/microcystic — polysomies incl. chromosome 5","Fibrous convexity meningioma — AKT1 p.E17K"],a:3,
+ link:"Correct subtype–genotype pairs",
+ why:"The mismatch is the last one. <b>AKT1 E17K</b> (and SMO, PIK3CA, TRAF7) meningiomas are <b>NF2-wildtype, skull-base, meningothelial/transitional</b>. Fibrous convexity meningiomas are the classic NF2/22q-loss tumors. Rhabdoid/papillary features with BAP1 loss are another pairing to remember."},
+
+{lvl:"t",topic:"Pediatric gliomas",opts:["ALK fusion","ROS1 fusion","NTRK2 fusion","MN1 fusion"],a:3,
+ link:"Drivers of infant-type hemispheric glioma",
+ why:"IHG is an RTK-fusion-driven tumor (ALK, ROS1, NTRK1–3, MET) of infants, with a better outcome than older-child HGG and targetable drivers. <b>MN1</b> rearrangements (MN1::BEND2) define <b>astroblastoma, MN1-altered</b>."},
+
+{lvl:"t",topic:"Pituitary",opts:["SF1 + GATA3 + ERα","PIT1 + ERα","PIT1 + GATA3","TPIT + ERα"],a:3,
+ link:"Valid transcription-factor profiles of PitNETs",
+ why:"Gonadotroph = SF1, GATA3, ERα. Lactotroph = PIT1, ERα. Thyrotroph = PIT1, GATA3. Corticotrophs are TPIT+ but <b>do not express ERα</b>, so 'TPIT + ERα' is the impossible combination."},
+
+{lvl:"t",topic:"Movement disorders",opts:["PANK2","WDR45","C19orf12","ATP7B"],a:3,
+ link:"Neurodegeneration with brain iron accumulation",
+ why:"PKAN (eye-of-the-tiger, spheroids), BPAN (X-linked dominant, SN/GP iron) and MPAN (Lewy pathology + spheroids) are NBIA. <b>ATP7B</b> is <b>Wilson disease</b>: copper, Alzheimer type II astrocytes and Opalski cells."},
+
+{lvl:"t",topic:"Neurodegeneration",opts:["Large cholinergic interneurons","SST/NPY/NOS (NADPH-diaphorase+) interneurons","Calretinin interneurons","Enkephalin-expressing indirect-pathway medium spiny neurons"],a:3,
+ link:"Relatively spared in the Huntington striatum",
+ why:"Striatal interneurons (cholinergic, NADPH-d/SST/NPY, calretinin) resist. Parvalbumin interneurons do not. <b>Enkephalin/D2 MSNs projecting to GPe</b> are lost earliest, which explains chorea, before the substance P/D1 direct-pathway neurons."},
+
+{lvl:"t",topic:"Prion",opts:["MM1/MV1 — synaptic PrP pattern","VV2 — plaque-like and perineuronal PrP, prominent cerebellar involvement","MV2K — kuru plaques","MM2-thalamic — severe widespread cortical spongiform change"],a:3,
+ link:"Correct sCJD subtype descriptions",
+ why:"<b>MM2-thalamic (sporadic fatal insomnia)</b> mirrors FFI: thalamic and olivary atrophy with <b>little or no spongiform change</b> and very little PrP deposition. Widespread coarse/perivacuolar spongiosis describes <b>MM2-cortical</b>."},
+
+{lvl:"t",topic:"Malformations",opts:["TUBA1A","TUBB2B","TUBB3","DCX"],a:3,
+ link:"Tubulinopathies",
+ why:"The tubulin genes give a spectrum of lissencephaly, polymicrogyria-like dysgyria, dysmorphic basal ganglia and an absent anterior limb of the internal capsule. <b>DCX</b> encodes a microtubule-<i>associated</i> protein (doublecortin). It causes X-linked lissencephaly in males and band heterotopia in females."},
+
+{lvl:"t",topic:"Epilepsy",opts:["MTOR","DEPDC5","NPRL3","SLC35A2"],a:3,
+ link:"mTOR pathway (FCD type II / hemimegalencephaly)",
+ why:"MTOR (somatic gain of function), DEPDC5/NPRL2/NPRL3 (GATOR1) and TSC1/2 drive FCD II. Somatic <b>SLC35A2</b> (a UDP-galactose transporter, glycosylation) defines <b>MOGHE</b>: mild malformation with oligodendroglial hyperplasia in frontal lobe epilepsy."},
+
+{lvl:"t",topic:"Classification",opts:["CNS tumor with BCOR internal tandem duplication","CNS neuroblastoma, FOXR2-activated","Embryonal tumor with multilayered rosettes","Astroblastoma, MN1-altered"],a:3,
+ link:"CNS5 'other CNS embryonal tumors'",
+ why:"The former 'CNS-PNETs' were split by methylation into BCOR-ITD, FOXR2-activated neuroblastoma, ETMR, CIC-rearranged… <b>Astroblastoma, MN1-altered</b> sits with the <b>circumscribed astrocytic gliomas</b>: perivascular astroblastic pseudorosettes with vascular hyalinization, mostly in young females."},
+
+{lvl:"t",topic:"Spinal tumors",opts:["HOXB13","GFAP","CD99","Strong diffuse nuclear OLIG2"],a:3,
+ link:"Expected immunoprofile of myxopapillary ependymoma",
+ why:"MPE is GFAP+ and CD99+, and HOXB13 is a sensitive marker that separates it from other spinal ependymomas and mimics. Ependymomas are typically <b>OLIG2-negative or only focal</b>, and strong diffuse OLIG2 favors an infiltrating glioma."},
+
+{lvl:"t",topic:"Nerve · EM",opts:["Widely spaced myelin lamellae","Uncompacted myelin lamellae","Macrophage-mediated myelin stripping","Tomacula"],a:3,
+ link:"Acquired, immune-mediated demyelinating neuropathies",
+ why:"Widely spaced myelin = anti-MAG IgM neuropathy. Uncompacted myelin = POEMS. Macrophage stripping = CIDP/AIDP. <b>Tomacula</b> are focal sausage-like hypermyelination, typical of hereditary <b>HNPP</b> (PMP22 deletion), which is genetic and not immune."},
+
+{lvl:"t",topic:"Tau beyond AD",opts:["Subacute sclerosing panencephalitis","Myotonic dystrophy type 1","Niemann–Pick type C","Huntington disease"],a:3,
+ link:"Neurofibrillary tangles are a recognized feature",
+ why:"SSPE (post-measles), DM1 (MAPT missplicing) and NPC (with AD-like paired helical filaments) all accumulate tau tangles, sometimes in young patients. <b>Huntington disease</b> is defined by polyQ/ubiquitin intranuclear and neuritic huntingtin inclusions, not tangles."},
+
+{lvl:"t",topic:"Neurogenetics",opts:["MAPT N279K","MAPT S305N","MAPT IVS10+16","MAPT R406W"],a:3,
+ link:"Increase exon 10 inclusion → predominantly 4R tau",
+ why:"N279K, S305N and intron 10 +16 disrupt the exon 10 splicing regulatory elements, producing a PSP/CBD-like 4R pathology. <b>R406W</b> lies outside exon 10 and produces <b>3R+4R, AD-like tangles</b>, often with a slow amnestic course."},
+
+{lvl:"t",topic:"Classification",opts:["Giant cell glioblastoma","Gliosarcoma","Epithelioid glioblastoma","High-grade astrocytoma with piloid features"],a:3,
+ link:"Subtypes of glioblastoma, IDH-wildtype in CNS5",
+ why:"Giant cell GBM, gliosarcoma and epithelioid GBM (frequent BRAF V600E) are subtypes of GBM IDH-wt. <b>HGAP</b> is a <b>separate tumor type</b>, defined by its methylation class (MAPK alteration, CDKN2A/B loss, ATRX loss)."},
+
+{lvl:"t",topic:"Amyloid",opts:["Cystatin C (Icelandic)","ABri (familial British dementia)","ADan (familial Danish dementia)","APP E693Q (Dutch)"],a:3,
+ link:"Hereditary cerebral amyloid angiopathies with non-Aβ amyloid",
+ why:"Cystatin C L68Q (HCHWA-I), BRI2 ABri and ADan, plus TTR and gelsolin, deposit non-Aβ amyloid. <b>HCHWA-Dutch</b> (APP E693Q) is an <b>Aβ</b> CAA with lobar hemorrhages and little parenchymal plaque/tangle pathology."},
+
+{lvl:"t",topic:"Prion",opts:["PRNP P102L","PRNP A117V","PRNP F198S","PRNP E200K"],a:3,
+ link:"Mutations typically producing a GSS phenotype",
+ why:"P102L (ataxic GSS), A117V (telencephalic GSS) and F198S (GSS with tangles, Indiana kindred) give multicentric PrP plaques. <b>E200K</b> is the most common genetic prion mutation worldwide (Libyan Jews, Slovakia, Chile) and causes a <b>CJD-like</b> spongiform phenotype."},
+
+{lvl:"t",topic:"FTLD",opts:["GRN","C9orf72","VCP","FUS"],a:3,
+ link:"Genes associated with FTLD-TDP",
+ why:"GRN → TDP type A, C9orf72 → B (± A) with DPR inclusions, VCP → type D (IBMPFD). <b>FUS</b> pathology is TDP-43-negative. ALS-FUS is caused by FUS mutations, and FTLD-FUS (aFTLD-U, NIFID, BIBD) is usually sporadic and also stains for TAF15/EWS."},
+
+{lvl:"t",topic:"Storage · EM",opts:["Granular osmiophilic deposits","Curvilinear profiles","Fingerprint profiles","Zebra bodies"],a:3,
+ link:"Ultrastructural signatures of neuronal ceroid lipofuscinoses",
+ why:"GRODs = CLN1 (PPT1). Curvilinear = CLN2 (TPP1, treatable with cerliponase alfa). Fingerprint = CLN3 (juvenile, vacuolated lymphocytes). <b>Zebra bodies</b> are lamellar lysosomal inclusions of mucopolysaccharidoses, Fabry and related storage disorders."},
+
+/* ---------- image (tryme) ---------- */
+{lvl:"t",topic:"Syndromes · images",img:true,opts:[{img:"SEGA HE.jpg",cap:"H&E"},{img:"Tuber HE 20191014 011.jpg",cap:"H&E"},{img:"Multifocal micronodular pneumocyte hyperplasia - TSC -- high mag.jpg",cap:"H&E (lung)"},{img:"Giant cell glioblastoma HE X200.jpg",cap:"H&E"}],a:3,
+ link:"Lesions of tuberous sclerosis complex",
+ why:"1) SEGA, with large gemistocyte-like/ganglioid cells. 2) Cortical tuber with dysmorphic neurons. 3) Multifocal micronodular pneumocyte hyperplasia, a TSC lung lesion distinct from LAM. 4) <b>Giant cell glioblastoma</b>: bizarre multinucleated giant cells, TP53/PTEN, IDH-wildtype. It is a GBM subtype, not a TSC lesion."}
+);
+
+</script>
+<script>
+(function(){
+  "use strict";
+  const LV = {
+    n:{name:"Normal", c:"var(--n)", desc:"Resident-proof. Mostly.", pips:1},
+    h:{name:"Hard", c:"var(--h)", desc:"Board-exam territory.", pips:2},
+    t:{name:"Tryme…", c:"var(--t)", desc:"For the sign-out room legends.", pips:3},
+    x:{name:"Mix", c:"var(--hema)", desc:"All 100, shuffled.", pips:0}
+  };
+  const $ = s => document.querySelector(s);
+  const imgURL = (f,w) => "https://commons.wikimedia.org/wiki/Special:FilePath/" + encodeURIComponent(f) + "?width=" + (w||800);
+  const pageURL = f => "https://commons.wikimedia.org/wiki/File:" + encodeURIComponent(f.replace(/ /g,"_"));
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  const shuffle = a => { a = a.slice(); for (let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
+
+  Q.forEach((q,i)=>{ q.id = i; });
+
+  let level = "n", length = 10;
+  let deck = [], idx = 0, score = 0, streak = 0, best = 0, answers = [], locked = false, order = [];
+
+  // ---------- theme ----------
+  $("#themeBtn").onclick = () => {
+    const root = document.documentElement;
+    const isDark = root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+    root.dataset.theme = isDark ? "light" : "dark";
+  };
+
+  // ---------- home ----------
+  function renderLevels(){
+    const box = $("#levels"); box.innerHTML = "";
+    ["n","h","t","x"].forEach(k=>{
+      const L = LV[k];
+      const n = k==="x" ? Q.length : Q.filter(q=>q.lvl===k).length;
+      const b = document.createElement("button");
+      b.className = "level"; b.style.setProperty("--c", L.c);
+      b.setAttribute("aria-pressed", String(level===k));
+      b.innerHTML = `<span class="count">${n} Q</span><div class="name">${L.name}</div><div class="desc">${L.desc}</div>` +
+        (L.pips ? `<div class="pips">${[1,2,3].map(p=>`<i class="${p<=L.pips?"on":""}"></i>`).join("")}</div>` : `<div class="pips"><i class="on" style="background:var(--n)"></i><i class="on" style="background:var(--h)"></i><i class="on" style="background:var(--t)"></i></div>`);
+      b.onclick = () => { level = k; renderLevels(); };
+      box.appendChild(b);
+    });
+  }
+  document.querySelectorAll("#lengths button").forEach(b=>{
+    b.onclick = () => {
+      length = +b.dataset.n;
+      document.querySelectorAll("#lengths button").forEach(x=>x.setAttribute("aria-pressed", String(x===b)));
+    };
+  });
+
+  function show(id){
+    ["home","quiz","end","credits"].forEach(s=>$("#"+s).classList.toggle("hidden", s!==id));
+    window.scrollTo({top:0});
+  }
+
+  // ---------- game ----------
+  function start(){
+    let pool = level==="x" ? Q.slice() : Q.filter(q=>q.lvl===level);
+    pool = shuffle(pool);
+    if (level==="x") { // keep a gentle ramp: normal → hard → tryme
+      const r = {n:0,h:1,t:2};
+      pool.sort((a,b)=> r[a.lvl]-r[b.lvl] + (Math.random()-.5)*1.6);
+    }
+    deck = length ? pool.slice(0, length) : pool;
+    idx = 0; score = 0; streak = 0; best = 0; answers = [];
+    show("quiz"); renderQ();
+  }
+
+  function setProgress(done){
+    const pct = Math.round(done / deck.length * 100);
+    $("#pfill").style.width = pct + "%";
+    $("#pbar").setAttribute("aria-valuenow", pct);
+  }
+
+  function renderQ(){
+    const q = deck[idx]; locked = false;
+    const L = LV[q.lvl];
+    const badge = $("#lvlBadge"); badge.textContent = L.name; badge.style.setProperty("--c", L.c);
+    $("#counter").textContent = `${idx+1} / ${deck.length}`;
+    $("#score").textContent = score;
+    $("#streak").textContent = streak>=3 ? `🔥${streak}` : "";
+    setProgress(idx);
+    $("#topic").textContent = q.topic || "";
+    $("#stem").textContent = q.stem || "Find the odd one out";
+    $("#sub").textContent = q.img ? "Tap a slide to answer · 🔍 to zoom" : "";
+    $("#revealBox").innerHTML = "";
+    order = shuffle([0,1,2,3]);
+    const box = $("#opts"); box.innerHTML = ""; box.classList.toggle("img", !!q.img); box.classList.remove("done");
+    order.forEach((oi, pos)=>{
+      const o = q.opts[oi];
+      const b = document.createElement("button");
+      b.className = "opt" + (q.img ? " imgopt" : "");
+      b.dataset.oi = oi;
+      if (q.img){
+        b.setAttribute("aria-label", `Slide ${oi+1}, ${o.cap||""}`);
+        b.innerHTML = `<img loading="eager" alt="Slide ${oi+1}" src="${imgURL(o.img)}"><span class="k">${oi+1}</span>${o.cap?`<span class="cap">${esc(o.cap)}</span>`:""}<span class="zoom" role="button" aria-label="Zoom">🔍</span>`;
+        const im = b.querySelector("img");
+        im.onerror = () => { im.remove(); const e=document.createElement("div"); e.className="err"; e.textContent="Image unavailable offline"; b.prepend(e); };
+        b.querySelector(".zoom").onclick = ev => { ev.stopPropagation(); openLB(o, oi); };
+      } else {
+        b.innerHTML = `<span class="k">${pos+1}</span><span>${esc(o)}</span>`;
+      }
+      b.onclick = () => answer(oi);
+      box.appendChild(b);
+    });
+  }
+
+  function answer(oi){
+    if (locked) return; locked = true;
+    const q = deck[idx];
+    const ok = oi === q.a;
+    if (ok){ score++; streak++; best = Math.max(best, streak); } else streak = 0;
+    answers.push({q, pick:oi, ok});
+    $("#opts").classList.add("done");
+    document.querySelectorAll("#opts .opt").forEach(b=>{
+      const k = +b.dataset.oi; b.disabled = true;
+      if (k===q.a) b.classList.add("correct");
+      else if (k===oi) b.classList.add("wrong");
+      else b.classList.add("dim");
+      if (q.img){ // keep zoom usable after reveal
+        const z = b.querySelector(".zoom"); if (z) z.onclick = ev => { ev.stopPropagation(); openLB(q.opts[k], k); };
+        b.disabled = false; b.onclick = () => openLB(q.opts[k], k);
+      }
+    });
+    $("#score").textContent = score;
+    $("#streak").textContent = streak>=3 ? `🔥${streak}` : "";
+    setProgress(idx+1);
+
+    const oddLabel = q.img ? `slide ${q.a+1}` : `“${esc(q.opts[q.a])}”`;
+    let credits = "";
+    if (q.img){
+      credits = `<div class="credits-line">Images: ` + q.opts.map((o,i)=>{
+        const c = (typeof CREDITS!=="undefined" && CREDITS[o.img]) || ["see Commons",""];
+        return `${i+1}. <a href="${pageURL(o.img)}" target="_blank" rel="noopener">${esc(c[1]||"Wikimedia Commons")}</a> (${esc(c[0])})`;
+      }).join(" · ") + `</div>`;
+    }
+    const last = idx === deck.length-1;
+    $("#revealBox").innerHTML = `<div class="reveal">
+      <div class="verdict ${ok?"ok":"bad"}">${ok ? "✓ Correct" : "✗ Not quite"} <span style="font-weight:600;font-size:15px;color:var(--muted)">— the odd one is ${oddLabel}</span></div>
+      <div class="link"><small>What the other three share</small>${q.link}</div>
+      <div class="why">${q.why}</div>${credits}
+      <button class="next" id="nextBtn">${last ? "See results" : "Next →"}</button></div>`;
+    $("#nextBtn").onclick = next;
+    setTimeout(()=>{ $("#revealBox").scrollIntoView({behavior:"smooth", block:"nearest"}); }, 60);
+  }
+
+  function next(){
+    if (idx < deck.length-1){ idx++; renderQ(); window.scrollTo({top:0, behavior:"smooth"}); }
+    else end();
+  }
+
+  function rankFor(p){
+    if (p>=95) return ["Gallyas Grandmaster","You see 4R tau in your sleep."];
+    if (p>=80) return ["Consultant neuropathologist","Sign-out is a formality."];
+    if (p>=65) return ["Attending","Solid. The methylation classifier respects you."];
+    if (p>=50) return ["Fellow","Good instincts, a few deferred diagnoses."];
+    if (p>=30) return ["Resident","Read the blue book and come back."];
+    return ["Medical student on rotation","Everyone starts with H&E."];
+  }
+
+  function end(){
+    setProgress(deck.length);
+    const pct = Math.round(score / deck.length * 100);
+    $("#pct").textContent = pct + "%";
+    const [r, s] = rankFor(pct);
+    $("#rank").textContent = r;
+    $("#rankSub").textContent = `${score} / ${deck.length} correct · best streak ${best}. ${s}`;
+    const bd = $("#breakdown"); bd.innerHTML = "";
+    ["n","h","t"].forEach(k=>{
+      const a = answers.filter(x=>x.q.lvl===k);
+      const d = document.createElement("div"); d.className = "bd"; d.style.setProperty("--c", LV[k].c);
+      d.innerHTML = `<div class="v">${a.length ? a.filter(x=>x.ok).length + "/" + a.length : "–"}</div><div class="l">${LV[k].name}</div>`;
+      bd.appendChild(d);
+    });
+    const miss = answers.filter(x=>!x.ok);
+    $("#review").innerHTML = miss.length ? `<div class="section-label">Review your misses (${miss.length})</div>` + miss.map(x=>{
+      const q = x.q;
+      const lab = i => q.img ? `slide ${i+1} (${esc(q.opts[i].cap||"")})` : esc(q.opts[i]);
+      return `<div class="ritem"><h4>${esc(q.topic)} · <span style="color:${LV[q.lvl].c}">${LV[q.lvl].name}</span></h4>
+        <div class="ans">You picked <span class="bad">${lab(x.pick)}</span> → odd one: <span class="ok">${lab(q.a)}</span></div>
+        <div class="link" style="font-size:14px"><small>Link</small>${q.link}</div><div class="why">${q.why}</div></div>`;
+    }).join("") : `<div class="section-label" style="text-align:center">Flawless. Not a single miss.</div>`;
+    show("end");
+  }
+
+  // ---------- lightbox ----------
+  function openLB(o, i){
+    $("#lbImg").src = imgURL(o.img, 1600);
+    $("#lbImg").alt = "Slide " + (i+1);
+    $("#lbCap").textContent = `Slide ${i+1}` + (o.cap ? ` · ${o.cap}` : "") + (locked ? "" : " · pinch to zoom");
+    $("#lb").classList.remove("hidden");
+  }
+  function closeLB(){ $("#lb").classList.add("hidden"); $("#lbImg").src = ""; }
+  $("#lbClose").onclick = closeLB;
+  $("#lb").onclick = e => { if (e.target.id === "lb") closeLB(); };
+
+  // ---------- credits ----------
+  function renderCredits(){
+    const files = [...new Set(Q.filter(q=>q.img).flatMap(q=>q.opts.map(o=>o.img)))];
+    $("#clist").innerHTML = files.map(f=>{
+      const c = (typeof CREDITS!=="undefined" && CREDITS[f]) || ["",""];
+      return `<li><a href="${pageURL(f)}" target="_blank" rel="noopener">${esc(f)}</a> — ${esc(c[1])}, ${esc(c[0])}</li>`;
+    }).join("");
+  }
+
+  // ---------- wiring ----------
+  $("#startBtn").onclick = start;
+  $("#againBtn").onclick = start;
+  $("#menuBtn").onclick = () => show("home");
+  $("#homeBtn").onclick = () => { if ($("#quiz").classList.contains("hidden") || confirmLeave()) show("home"); };
+  function confirmLeave(){ return answers.length===0 || window.confirm("Leave this game?"); }
+  $("#creditsBtn").onclick = () => { renderCredits(); show("credits"); };
+  $("#creditsBack").onclick = () => show("home");
+
+  document.addEventListener("keydown", e=>{
+    if (!$("#lb").classList.contains("hidden")) { if (e.key==="Escape") closeLB(); return; }
+    if ($("#quiz").classList.contains("hidden")) return;
+    if (!locked && /^[1-4]$/.test(e.key)){
+      const q = deck[idx];
+      // for text questions keys follow on-screen position; for slides, the slide number
+      const oi = q.img ? (+e.key-1) : order[+e.key-1];
+      answer(oi);
+    } else if (locked && (e.key==="Enter" || e.key===" ")) { e.preventDefault(); next(); }
+  });
+
+  renderLevels();
+})();
+</script>
+</body>
+</html>
